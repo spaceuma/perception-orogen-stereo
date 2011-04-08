@@ -23,8 +23,6 @@ bool Task::configureHook()
 {
     //initialize dense stereo
     dense_stereo = new DenseStereo();
-  
-    //configuration?
     
     if (! TaskBase::configureHook())
         return false;
@@ -49,10 +47,7 @@ void Task::updateHook()
       if(_left_disparity_frame.connected() || _right_disparity_frame.connected())
       {
 	//rotate frames by 180 deg and switch them
-	//rightCvFrame = dense_stereo->rotateImage(leftFrame.convertToCvMat(), 180.);
-	//leftCvFrame = dense_stereo->rotateImage(rightFrame.convertToCvMat(), 180.);
-	
-	//flip images is faster by one magnitude then rotation, but recalibration is needed
+	//flip images is faster then rotation
 	cv::flip(leftFrame.convertToCvMat(),rightCvFrame,-1);
 	cv::flip(rightFrame.convertToCvMat(),leftCvFrame,-1);
 	
@@ -63,18 +58,6 @@ void Task::updateHook()
 	//calculate the disparities
 	dense_stereo->process_FramePair(leftCvFrame, rightCvFrame, leftCvDisparityFrame, rightCvDisparityFrame);
 	
-	//save input images to filesystem
-	ostringstream left_file_time, right_file_time;
-	left_file_time << leftFrame.time.toMilliseconds();
-	right_file_time << rightFrame.time.toMilliseconds();
-	
-	cv::imwrite("right_frame_" + right_file_time.str() + ".png",rightCvFrame);
-	cv::imwrite("left_frame_" + left_file_time.str() + ".png",leftCvFrame);
-	
-	//test if output images are ok
-	cv::imwrite("right_frame_disp_" + right_file_time.str() + ".png",rightCvDisparityFrame);
-	cv::imwrite("left_frame_disp_" + left_file_time.str() + ".png",leftCvDisparityFrame);
-	
 	//leftDisparityFrame convert to Frame
 	leftDisparityFrame.init(leftCvDisparityFrame.size().width, leftCvDisparityFrame.size().height, leftCvDisparityFrame.elemSize1(), base::samples::frame::MODE_GRAYSCALE);
 	leftDisparityFrame.setImage((const char *)leftCvDisparityFrame.data, leftCvDisparityFrame.size().width * leftCvDisparityFrame.size().height);
@@ -83,8 +66,8 @@ void Task::updateHook()
 	rightDisparityFrame.setImage((const char *)rightCvDisparityFrame.data, rightCvDisparityFrame.size().width * rightCvDisparityFrame.size().height);
 
 	//set the frame's timestamp
-	leftDisparityFrame.time = base::Time::now();
-	rightDisparityFrame.time = base::Time::now();
+	leftDisparityFrame.time = rightFrame.time;
+	rightDisparityFrame.time = leftFrame.time;
 	
 	//write to outputs
 	_left_disparity_frame.write(leftDisparityFrame);
