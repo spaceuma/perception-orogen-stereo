@@ -49,10 +49,7 @@ void Task::updateHook()
       if(_left_disparity_frame.connected() || _right_disparity_frame.connected())
       {
 	//rotate frames by 180 deg and switch them
-	//rightCvFrame = dense_stereo->rotateImage(leftFrame.convertToCvMat(), 180.);
-	//leftCvFrame = dense_stereo->rotateImage(rightFrame.convertToCvMat(), 180.);
-	
-	//flip images is faster by one magnitude then rotation, but recalibration is needed
+	//flip images is faster by one magnitude then rotation
 	cv::flip(leftFrame.convertToCvMat(),rightCvFrame,-1);
 	cv::flip(rightFrame.convertToCvMat(),leftCvFrame,-1);
 	
@@ -83,8 +80,8 @@ void Task::updateHook()
 	rightDisparityFrame.setImage((const char *)rightCvDisparityFrame.data, rightCvDisparityFrame.size().width * rightCvDisparityFrame.size().height);
 
 	//set the frame's timestamp
-	leftDisparityFrame.time = base::Time::now();
-	rightDisparityFrame.time = base::Time::now();
+	leftDisparityFrame.time = rightFrame.time;
+	rightDisparityFrame.time = leftFrame.time;
 	
 	//write to outputs
 	_left_disparity_frame.write(leftDisparityFrame);
