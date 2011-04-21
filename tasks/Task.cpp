@@ -24,7 +24,8 @@ bool Task::configureHook()
     //initialize dense stereo
     dense_stereo = new DenseStereo();
   
-    //configuration?
+    //configure dense stereo
+    dense_stereo->setCalibrationAndLibElasConfiguration(_stereoCameraCalibration.get(), _libElas_conf.get());
     
     if (! TaskBase::configureHook())
         return false;
