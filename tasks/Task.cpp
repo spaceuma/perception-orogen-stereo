@@ -23,6 +23,9 @@ bool Task::configureHook()
 {
     //initialize dense stereo
     dense_stereo = new DenseStereo();
+  
+    //configure dense stereo
+    dense_stereo->setCalibrationAndLibElasConfiguration(_stereoCameraCalibration.get(), _libElas_conf.get());
     
     if (! TaskBase::configureHook())
         return false;
@@ -38,40 +41,37 @@ void Task::updateHook()
 {
     TaskBase::updateHook();
     
-    base::samples::frame::Frame leftFrame, rightFrame, leftDisparityFrame, rightDisparityFrame;
+    base::samples::frame::Frame leftFrame, rightFrame;
+    disparity_image disparityFrame;
     cv::Mat leftCvFrame, rightCvFrame, leftCvDisparityFrame, rightCvDisparityFrame;
     
     if(_left_frame.read(leftFrame) == RTT::NewData && _right_frame.read(rightFrame) == RTT::NewData)
     {
       //check if something is connected to the outputports otherwise do not calculate anything
-      if(_left_disparity_frame.connected() || _right_disparity_frame.connected())
+      if(_disparity_frame.connected())
       {
 	//rotate frames by 180 deg and switch them
-	//flip images is faster then rotation
-	cv::flip(leftFrame.convertToCvMat(),rightCvFrame,-1);
-	cv::flip(rightFrame.convertToCvMat(),leftCvFrame,-1);
+	//flip images is faster by one magnitude then rotation
+	//cv::flip(leftFrame.convertToCvMat(),rightCvFrame,-1);
+	//cv::flip(rightFrame.convertToCvMat(),leftCvFrame,-1);
 	
 	//for wide angle lens flip is not needed
-	//rightCvFrame = leftFrame.convertToCvMat();
-	//leftCvFrame = rightFrame.convertToCvMat();
+	rightCvFrame = leftFrame.convertToCvMat();
+	leftCvFrame = rightFrame.convertToCvMat();
 	
 	//calculate the disparities
 	dense_stereo->process_FramePair(leftCvFrame, rightCvFrame, leftCvDisparityFrame, rightCvDisparityFrame);
 	
-	//leftDisparityFrame convert to Frame
-	leftDisparityFrame.init(leftCvDisparityFrame.size().width, leftCvDisparityFrame.size().height, leftCvDisparityFrame.elemSize1(), base::samples::frame::MODE_GRAYSCALE);
-	leftDisparityFrame.setImage((const char *)leftCvDisparityFrame.data, leftCvDisparityFrame.size().width * leftCvDisparityFrame.size().height);
-	//leftDisparityFrame convert to Frame
-	rightDisparityFrame.init(rightCvDisparityFrame.size().width, rightCvDisparityFrame.size().height, rightCvDisparityFrame.elemSize1(), base::samples::frame::MODE_GRAYSCALE);
-	rightDisparityFrame.setImage((const char *)rightCvDisparityFrame.data, rightCvDisparityFrame.size().width * rightCvDisparityFrame.size().height);
+	//setup the disparity image
+	disparityFrame.data = (float *)leftCvDisparityFrame.data;
+	disparityFrame.height = leftCvDisparityFrame.size().height;
+	disparityFrame.width = leftCvDisparityFrame.size().width;	
 
 	//set the frame's timestamp
-	leftDisparityFrame.time = rightFrame.time;
-	rightDisparityFrame.time = leftFrame.time;
+	disparityFrame.time = rightFrame.time; //rightFrame.time because switch of the to input frames
 	
 	//write to outputs
-	_left_disparity_frame.write(leftDisparityFrame);
-	_right_disparity_frame.write(rightDisparityFrame);
+	_disparity_frame.write(disparityFrame);
       }
     }
 }

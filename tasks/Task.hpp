@@ -10,6 +10,7 @@
 #include <base/samples/frame.h>
 
 #include "dense_stereo/TaskBase.hpp"
+#include "Disparity_Type.h"
 
 namespace dense_stereo {
     class Task : public TaskBase
