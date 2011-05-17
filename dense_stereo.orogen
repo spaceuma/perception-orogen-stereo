@@ -13,6 +13,7 @@ using_library "dense_stereo"
 import_types_from "base"
 
 import_types_from "dense_stereo/Types.h"
+import_types_from "Disparity_Type.h"
 
 task_context "Task" do
    # A configuration property (here, a std::string). Its value can be retrieved
@@ -25,8 +26,7 @@ task_context "Task" do
    input_port "left_frame", "/base/samples/frame/Frame"
    input_port "right_frame", "/base/samples/frame/Frame"
 
-   output_port "left_disparity_frame", "/base/samples/frame/Frame"
-   output_port "right_disparity_frame", "/base/samples/frame/Frame"
+   output_port "disparity_frame", "/dense_stereo/disparity_image"
 
    port_driven
 end
