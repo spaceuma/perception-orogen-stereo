@@ -36,5 +36,7 @@ end
 deployment "dense_stereo_test" do
     # Declares it
     task("dense_stereo", "Task")
+
+    add_default_logger
 end
 
