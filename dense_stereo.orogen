@@ -12,8 +12,8 @@ using_library "opencv"
 using_library "dense_stereo"
 import_types_from "base"
 
-import_types_from "dense_stereo/Types.h"
-import_types_from "Disparity_Type.h"
+import_types_from "dense_stereo/dense_stereo_types.h"
+#import_types_from "Disparity_Type.h"
 
 task_context "Task" do
    # A configuration property (here, a std::string). Its value can be retrieved
