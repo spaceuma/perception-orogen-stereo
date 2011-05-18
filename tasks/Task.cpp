@@ -42,31 +42,43 @@ void Task::updateHook()
     TaskBase::updateHook();
     
     base::samples::frame::Frame leftFrame, rightFrame;
-    disparity_image disparityFrame;
-    cv::Mat leftCvFrame, rightCvFrame, leftCvDisparityFrame, rightCvDisparityFrame;
     
     if(_left_frame.read(leftFrame) == RTT::NewData && _right_frame.read(rightFrame) == RTT::NewData)
     {
       //check if something is connected to the outputports otherwise do not calculate anything
       if(_disparity_frame.connected())
       {
+      const size_t 
+	  width = leftFrame.getSize().width, 
+	  height = leftFrame.getSize().height, 
+	  size = width * height;
+
 	//rotate frames by 180 deg and switch them
 	//flip images is faster by one magnitude then rotation
 	//cv::flip(leftFrame.convertToCvMat(),rightCvFrame,-1);
 	//cv::flip(rightFrame.convertToCvMat(),leftCvFrame,-1);
 	
 	//for wide angle lens flip is not needed
-	rightCvFrame = leftFrame.convertToCvMat();
-	leftCvFrame = rightFrame.convertToCvMat();
+	cv::Mat rightCvFrame = leftFrame.convertToCvMat();
+	cv::Mat leftCvFrame = rightFrame.convertToCvMat();
+
+	// pre-allocate the memory for the output disparity map, so we don't
+	// have to copy it. This means we have to assert that the width and
+	// height is the same for input and resulting disparity images
+	disparity_image disparityFrame;
+	disparityFrame.data.resize( size );	
+	disparityFrame.height = height;
+	disparityFrame.width = width;	
+
+	// cv wrappers for the resulting disparity images. 
+	// only store the left image, discard the right one
+	cv::Mat leftCvDisparityFrame( width, height, cv::DataType<float>::type,
+		reinterpret_cast<uint8_t *>( &disparityFrame.data[0] ) );
+	cv::Mat rightCvDisparityFrame; 
 	
 	//calculate the disparities
 	dense_stereo->process_FramePair(leftCvFrame, rightCvFrame, leftCvDisparityFrame, rightCvDisparityFrame);
 	
-	//setup the disparity image
-	disparityFrame.data = (float *)leftCvDisparityFrame.data;
-	disparityFrame.height = leftCvDisparityFrame.size().height;
-	disparityFrame.width = leftCvDisparityFrame.size().width;	
-
 	//set the frame's timestamp
 	disparityFrame.time = rightFrame.time; //rightFrame.time because switch of the to input frames
 	
