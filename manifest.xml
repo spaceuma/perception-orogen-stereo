@@ -2,7 +2,7 @@
   <description brief="dummy-brief-desc">
   dummy-long-desc
   </description>
-  <author>dummy-author/dummy-email</author>
+  <author>Jan Fraedrich</author>
   <license>dummy-license</license>
   <url>dummy-url</url>
   <logo>dummy-logo-url</logo>
@@ -14,7 +14,7 @@
   <depend package="dummy-dependency-n" />
 -->
 <!--DEPEND-ENTRY-->
-  <depend package="image_processing/dense_stereo" />
+<depend package="image_processing/dense_stereo" />
   <versioncontrol type="dummy-version-control" url="dummy-version-control-url" />
   <export>
     <cpp cflags="dummy-cflags" lflags="dummy-lflags" />
