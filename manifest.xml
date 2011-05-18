@@ -14,7 +14,7 @@
   <depend package="dummy-dependency-n" />
 -->
 <!--DEPEND-ENTRY-->
-<!--<depend package="base/types" />-->
+  <depend package="image_processing/dense_stereo" />
   <versioncontrol type="dummy-version-control" url="dummy-version-control-url" />
   <export>
     <cpp cflags="dummy-cflags" lflags="dummy-lflags" />
