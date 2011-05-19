@@ -26,7 +26,7 @@ task_context "Task" do
    input_port "left_frame", "/base/samples/frame/Frame"
    input_port "right_frame", "/base/samples/frame/Frame"
 
-   output_port "disparity_frame", "/dense_stereo/disparity_image"
+   output_port "distance_frame", "/dense_stereo/distance_image"
 
    port_driven
 end
