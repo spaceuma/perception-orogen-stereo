@@ -46,7 +46,7 @@ void Task::updateHook()
     if(_left_frame.read(leftFrame) == RTT::NewData && _right_frame.read(rightFrame) == RTT::NewData)
     {
       //check if something is connected to the outputports otherwise do not calculate anything
-      if(_distance_frame.connected())
+      if(_disparity_frame.connected())
       {
       const size_t 
 	  width = leftFrame.getSize().width, 
@@ -65,33 +65,25 @@ void Task::updateHook()
 	// pre-allocate the memory for the output disparity map, so we don't
 	// have to copy it. This means we have to assert that the width and
 	// height is the same for input and resulting disparity images
-	distance_image distanceFrame;
-	distanceFrame.data.resize( size );	
-	distanceFrame.height = height;
-	distanceFrame.width = width;	
-	distanceFrame.time = rightFrame.time; 
+	disparity_image disparityFrame;
+	disparityFrame.data.resize( size );	
+	disparityFrame.height = height;
+	disparityFrame.width = width;	
 
-	// TODO set scale x and scale y
-	distanceFrame.scale_x = 1.0f;
-	distanceFrame.scale_y = 1.0f;	
-	
 	// cv wrappers for the resulting disparity images. 
 	// only store the left image, discard the right one
 	cv::Mat leftCvDisparityFrame( width, height, cv::DataType<float>::type,
-		reinterpret_cast<uint8_t *>( &distanceFrame.data[0] ) );
+		reinterpret_cast<uint8_t *>( &disparityFrame.data[0] ) );
 	cv::Mat rightCvDisparityFrame; 
 	
 	//calculate the disparities
 	dense_stereo->process_FramePair(leftCvFrame, rightCvFrame, leftCvDisparityFrame, rightCvDisparityFrame);
-
-	// TODO set distance factor
-	const float dist_factor = 1.0f; // baseline * focal length
-	// calculate distance as inverse of disparity
-	for( size_t i=0; i<size; i++ )
-	    distanceFrame.data[i] = dist_factor / distanceFrame.data[i];
+	
+	//set the frame's timestamp
+	disparityFrame.time = rightFrame.time; //rightFrame.time because switch of the to input frames
 	
 	//write to outputs
-	_distance_frame.write(distanceFrame);
+	_disparity_frame.write(disparityFrame);
       }
     }
 }
