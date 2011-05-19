@@ -23,10 +23,10 @@ bool Task::configureHook()
 {
     //initialize dense stereo
     dense_stereo = new DenseStereo();
-  
+
     //configure dense stereo
     dense_stereo->setCalibrationAndLibElasConfiguration(_stereoCameraCalibration.get(), _libElas_conf.get());
-    
+
     if (! TaskBase::configureHook())
         return false;
     return true;
@@ -46,7 +46,7 @@ void Task::updateHook()
     if(_left_frame.read(leftFrame) == RTT::NewData && _right_frame.read(rightFrame) == RTT::NewData)
     {
       //check if something is connected to the outputports otherwise do not calculate anything
-      if(_disparity_frame.connected())
+      if(_distance_frame.connected())
       {
       const size_t 
 	  width = leftFrame.getSize().width, 
@@ -65,25 +65,42 @@ void Task::updateHook()
 	// pre-allocate the memory for the output disparity map, so we don't
 	// have to copy it. This means we have to assert that the width and
 	// height is the same for input and resulting disparity images
-	disparity_image disparityFrame;
-	disparityFrame.data.resize( size );	
-	disparityFrame.height = height;
-	disparityFrame.width = width;	
+	distance_image distanceFrame;
+	distanceFrame.data.resize( size );	
+	distanceFrame.height = height;
+	distanceFrame.width = width;	
+	distanceFrame.time = rightFrame.time;
 
+	// get calibration to extract scales, baseline and focal length
+	StereoCameraCalibration calibration = _stereoCameraCalibration.get();
+	
+	// set scale x and scale y
+	// p_x = (x / focal length) * pixel width, same for y
+	// after this transform p_x is in meters
+	distanceFrame.scale_x = (float)(calibration.CamLeft.fx / _cameraPixelWidth.get());
+	distanceFrame.scale_y = (float)(calibration.CamLeft.fy / _cameraPixelHeight.get());
+	
+	// set principal point (center_x and center_y) in meters
+	distanceFrame.center_x = (float)calibration.CamLeft.cx * _cameraPixelWidth.get();
+	distanceFrame.center_x = (float)calibration.CamLeft.cy * _cameraPixelHeight.get();
+	
 	// cv wrappers for the resulting disparity images. 
 	// only store the left image, discard the right one
 	cv::Mat leftCvDisparityFrame( width, height, cv::DataType<float>::type,
-		reinterpret_cast<uint8_t *>( &disparityFrame.data[0] ) );
-	cv::Mat rightCvDisparityFrame; 
-	
+		reinterpret_cast<uint8_t *>( &distanceFrame.data[0] ) );
+	cv::Mat rightCvDisparityFrame;
+
 	//calculate the disparities
 	dense_stereo->process_FramePair(leftCvFrame, rightCvFrame, leftCvDisparityFrame, rightCvDisparityFrame);
-	
-	//set the frame's timestamp
-	disparityFrame.time = rightFrame.time; //rightFrame.time because switch of the to input frames
-	
+
+	// TODO set distance factor
+	const float dist_factor = (float)(calibration.extrinsic.tx); // baseline * focal length
+	// calculate distance as inverse of disparity
+	for( size_t i=0; i<size; i++ )
+	    distanceFrame.data[i] = dist_factor / distanceFrame.data[i];
+
 	//write to outputs
-	_disparity_frame.write(disparityFrame);
+	_distance_frame.write(distanceFrame);
       }
     }
 }

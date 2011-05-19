@@ -39,7 +39,7 @@ log_files.each_with_index do |log_file,index|
     
     Orocos.log_all_ports
 
-    reader = dense_stereo.disparity_frame.reader(:type => :buffer, :size => 1)
+    reader = dense_stereo.distance_frame.reader(:type => :buffer, :size => 1)
     counter = 0
     
     #configure dense_stereo
@@ -125,6 +125,10 @@ log_files.each_with_index do |log_file,index|
     libElas_conf.postprocess_only_left = true
     dense_stereo.libElas_conf = libElas_conf
     
+    #set the pixel size of the camera
+    dense_stereo.cameraPixelSize_x = 6.4*10**-6
+    dense_stereo.cameraPixelSize_y = 6.4*10**-6
+    
     dense_stereo.configure
     dense_stereo.start
     
@@ -141,14 +145,14 @@ log_files.each_with_index do |log_file,index|
       
       next if frame1 == nil
       
-      t1 = frame1.time
-      ts1 = t1.tv_sec * 1000000 + t1.tv_usec
+      #t1 = frame1.time
+      #ts1 = t1.tv_sec * 1000000 + t1.tv_usec
 
-      path = "#{log_file}_#{reader.port.task.name}_#{reader.port.name}#{counter}.png"
-	puts path
-      Vizkit.default_loader.ImageView.save_frame(frame1,path)
+      #path = "#{log_file}_#{reader.port.task.name}_#{reader.port.name}#{counter}.png"
+	#puts path
+    #  Vizkit.default_loader.ImageView.save_frame(frame1,path)
 
-      counter += 1
+    #  counter += 1
 
       GC.start
     end
