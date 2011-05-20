@@ -76,13 +76,13 @@ void Task::updateHook()
 	
 	// set scale x and scale y
 	// p_x = (x / focal length) * pixel width, same for y
-	// after this transform p_x is in meters
+	// after this transform p_x is in meters and a point on a plane with focal length 1.0
 	distanceFrame.scale_x = (float)(calibration.CamLeft.fx / _cameraPixelWidth.get());
 	distanceFrame.scale_y = (float)(calibration.CamLeft.fy / _cameraPixelHeight.get());
 	
 	// set principal point (center_x and center_y) in meters
-	distanceFrame.center_x = (float)calibration.CamLeft.cx * _cameraPixelWidth.get();
-	distanceFrame.center_x = (float)calibration.CamLeft.cy * _cameraPixelHeight.get();
+	distanceFrame.center_x = (float)(calibration.CamLeft.cx * _cameraPixelWidth.get());
+	distanceFrame.center_x = (float)(calibration.CamLeft.cy * _cameraPixelHeight.get());
 	
 	// cv wrappers for the resulting disparity images. 
 	// only store the left image, discard the right one
@@ -93,8 +93,10 @@ void Task::updateHook()
 	//calculate the disparities
 	dense_stereo->process_FramePair(leftCvFrame, rightCvFrame, leftCvDisparityFrame, rightCvDisparityFrame);
 
-	// TODO set distance factor
-	const float dist_factor = (float)(calibration.extrinsic.tx); // baseline * focal length
+	// set distance factor
+	// use focal length in x-direction, because we measure disparities in x-direction. 
+	// Only relevant for cameras with rectangular pixel
+	const float dist_factor = (float)(calibration.extrinsic.tx * calibration.CamLeft.fx); // baseline * focal length
 	// calculate distance as inverse of disparity
 	for( size_t i=0; i<size; i++ )
 	    distanceFrame.data[i] = dist_factor / distanceFrame.data[i];
