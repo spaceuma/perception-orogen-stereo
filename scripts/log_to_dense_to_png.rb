@@ -1,5 +1,6 @@
 #! /usr/bin/env ruby
 
+require 'config'
 require 'vizkit'
 include Orocos
 
@@ -53,13 +54,14 @@ log_files.each_with_index do |log_file,index|
     dense_stereo.libElas_conf = libElas_conf
     
     #set the pixel size of the camera
-    dense_stereo.cameraPixelSize_x = 6.4*10**-6
-    dense_stereo.cameraPixelSize_y = 6.4*10**-6
+    dense_stereo.cameraPixelWidth = 6.4*10**-6
+    dense_stereo.cameraPixelHeight = 6.4*10**-6
     
     dense_stereo.configure
     dense_stereo.start
-    
+
     while log.step(false) != nil
+
       frame1 = reader.read_new
       
       timeout = 0

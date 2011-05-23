@@ -1,6 +1,6 @@
-def cal_config( name, stereoCamCal )
+def cal_config( cal_name, stereoCamCal )
     #configure dense_stereo
-    if(calibration == :wide)
+    if( cal_name == :wide)
 	puts "wide calibration used"
       #asguard wide angle lens
       camLeft = stereoCamCal.CamLeft
