@@ -77,8 +77,8 @@ void Task::updateHook()
 	// set scale x and scale y
 	// p_x = (x / focal length) * pixel width, same for y
 	// after this transform p_x is in meters and a point on a plane with focal length 1.0
-	distanceFrame.scale_x = (float)(calibration.CamLeft.fx / _cameraPixelWidth.get());
-	distanceFrame.scale_y = (float)(calibration.CamLeft.fy / _cameraPixelHeight.get());
+	distanceFrame.scale_x = (float)( _cameraPixelWidth.get() / calibration.CamLeft.fx );
+	distanceFrame.scale_y = (float)( _cameraPixelHeight.get() / calibration.CamLeft.fy );
 	
 	// set principal point (center_x and center_y) in meters
 	distanceFrame.center_x = (float)(calibration.CamLeft.cx * _cameraPixelWidth.get());
