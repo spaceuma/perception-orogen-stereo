@@ -1,6 +1,7 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
 #include "Task.hpp"
+#include <limits>
 
 using namespace dense_stereo;
 
@@ -72,17 +73,17 @@ void Task::updateHook()
 	distanceFrame.time = rightFrame.time;
 
 	// get calibration to extract scales, baseline and focal length
-	StereoCameraCalibration calibration = _stereoCameraCalibration.get();
+	const StereoCameraCalibration &calibration = _stereoCameraCalibration.get();
 	
-	// set scale x and scale y
-	// p_x = (x / focal length) * pixel width, same for y
-	// after this transform p_x is in meters and a point on a plane with focal length 1.0
-	distanceFrame.scale_x = (float)( _cameraPixelWidth.get() / calibration.CamLeft.fx );
-	distanceFrame.scale_y = (float)( _cameraPixelHeight.get() / calibration.CamLeft.fy );
-	
-	// set principal point (center_x and center_y) in meters
-	distanceFrame.center_x = (float)(calibration.CamLeft.cx * _cameraPixelWidth.get());
-	distanceFrame.center_x = (float)(calibration.CamLeft.cy * _cameraPixelHeight.get());
+	// scale and center parameters of the distance image are the inverse of the
+	// f and c values from the camera calibration. 
+	//
+	// so analogous for x and y we get scale = 1/f and offset = -c/f
+	// 
+	distanceFrame.scale_x = 1.0f / calibration.CamLeft.fx;
+	distanceFrame.scale_y = 1.0f / calibration.CamLeft.fy;
+	distanceFrame.center_x = -calibration.CamLeft.cx / calibration.CamLeft.fx; 
+	distanceFrame.center_y = -calibration.CamLeft.cy / calibration.CamLeft.fy; 
 	
 	// cv wrappers for the resulting disparity images. 
 	// only store the left image, discard the right one
@@ -94,12 +95,16 @@ void Task::updateHook()
 	dense_stereo->process_FramePair(leftCvFrame, rightCvFrame, leftCvDisparityFrame, rightCvDisparityFrame);
 
 	// set distance factor
-	// use focal length in x-direction, because we measure disparities in x-direction. 
-	// Only relevant for cameras with rectangular pixel
-	const float dist_factor = (float)(calibration.extrinsic.tx * calibration.CamLeft.fx); // baseline * focal length
+	const float dist_factor = -calibration.extrinsic.tx * 1e-3; // baseline in meters 
+
 	// calculate distance as inverse of disparity
 	for( size_t i=0; i<size; i++ )
-	    distanceFrame.data[i] = dist_factor / distanceFrame.data[i];
+	{
+	    const float distance_value = distanceFrame.data[i];
+	    distanceFrame.data[i] = distance_value > 0 ? 
+		dist_factor / distance_value : 
+		std::numeric_limits<float>::quiet_NaN();
+	}
 
 	//write to outputs
 	_distance_frame.write(distanceFrame);
