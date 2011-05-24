@@ -2,21 +2,36 @@
 
 require 'config'
 require 'vizkit'
+require 'optparse'
 include Orocos
 
-  ts1 = ''
-  ts2 = ''
+def usage
+    STDERR.puts 
+    exit 1
+end
 
-  initial_offset = 0
-  last_offset = 0
-  
-  calibration = :wide #for wide lens calibration
-  #calibration = :normal #for normal lens calibration
+calibration = :wide
 
-if !ARGV.empty?
-  log_files = ARGV
+opt_parse = OptionParser.new do |opt|
+    opt.banner = "process_dense_stereo.rb [-m calibration_file|-s calibration_symbol] <log_file|log_file_dir>"
+    opt.on("-m calibration_file", String, "Filename of the stereo camera calibration from the Matlab Toolbox") do |name|
+	calibration = name
+    end
+    opt.on("-s calibration_symbol", String, "Use build in calibration by the given name") do |name|
+	calibration = name.to_sym
+    end
+end
+
+args = opt_parse.parse( ARGV )
+if args.size < 1
+    puts opt_parse
+    exit 1
+end
+
+if not args.empty?
+    log_files = args[0]
 else
-  log_files = Dir.glob(File.join("**","*[0-9].log"))
+    log_files = Dir.glob(File.join("**","*[0-9].log"))
 end
 
 puts "Found #{log_files.size} logfiles"

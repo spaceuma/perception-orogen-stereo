@@ -1,6 +1,56 @@
+require 'pp'
+
+class MatlabCalibration
+    def initialize
+	@params = Hash.new
+    end
+
+    def read( file_name )
+	File.open( file_name, 'r' ) do |f|
+	    while (line = f.gets)
+		if line =~ /(\w+) = \[([^\]]+)\]/
+		    @params[$1] = $2.split(" ").map! &:to_f
+		end	    
+	    end
+	end
+    end
+
+    def pretty_print( pp )
+	pp @params
+    end
+
+    def method_missing( name )
+	@params[name.to_s]
+    end
+end
+
 def cal_config( cal_name, stereoCamCal )
-    #configure dense_stereo
-    if( cal_name == :wide)
+    pp cal_name
+    # see if we need to load the calibration configuration from file
+    if cal_name.is_a? String and File.exists? cal_name
+	calib = MatlabCalibration.new
+	calib.read cal_name
+	puts "using config from file #{cal_name}"
+	pp calib
+
+	camLeft = stereoCamCal.CamLeft
+	camLeft.fx, camLeft.fy = calib.fc_left 
+	camLeft.cx, camLeft.cy = calib.cc_left
+	camLeft.d0, camLeft.d1, camLeft.d2, camLeft.d3 = calib.kc_left
+	stereoCamCal.CamLeft = camLeft
+
+	camRight = stereoCamCal.CamRight
+	camRight.fx, camRight.fy = calib.fc_right 
+	camRight.cx, camRight.cy = calib.cc_right
+	camRight.d0, camRight.d1, camRight.d2, camRight.d3 = calib.kc_right
+	stereoCamCal.CamRight = camRight
+
+	extrinsic = stereoCamCal.extrinsic
+	extrinsic.tx, extrinsic.ty, extrinsic.tz = calib.T
+	extrinsic.rx, extrinsic.ry, extrinsic.rz = calib.om
+	stereoCamCal.extrinsic = extrinsic
+    # configure dense_stereo from predefined configs
+    elsif( cal_name == :wide)
 	puts "wide calibration used"
       #asguard wide angle lens
       camLeft = stereoCamCal.CamLeft
@@ -39,7 +89,6 @@ def cal_config( cal_name, stereoCamCal )
     else
 	puts "normal calibration used"
       #asguard cam guppy mar 2011
-      stereoCamCal = dense_stereo.stereoCameraCalibration
       camLeft = stereoCamCal.CamLeft
       #intrinsic parameters
       camLeft.fx = 701.60321
@@ -72,7 +121,5 @@ def cal_config( cal_name, stereoCamCal )
       extrinsic.ry = -0.00352
       extrinsic.rz = 0.00712
       stereoCamCal.extrinsic = extrinsic
-      
-      dense_stereo.stereoCameraCalibration = stereoCamCal
     end
 end
