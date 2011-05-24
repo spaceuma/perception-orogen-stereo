@@ -95,14 +95,14 @@ void Task::updateHook()
 	dense_stereo->process_FramePair(leftCvFrame, rightCvFrame, leftCvDisparityFrame, rightCvDisparityFrame);
 
 	// set distance factor
-	const float dist_factor = -calibration.extrinsic.tx * 1e-3; // baseline in meters 
+	const float dist_factor = fabs( calibration.CamLeft.fx * calibration.extrinsic.tx * 1e-3 ); // baseline in meters 
 
 	// calculate distance as inverse of disparity
 	for( size_t i=0; i<size; i++ )
 	{
-	    const float distance_value = distanceFrame.data[i];
-	    distanceFrame.data[i] = distance_value > 0 ? 
-		dist_factor / distance_value : 
+	    const float disparity = distanceFrame.data[i];
+	    distanceFrame.data[i] = disparity > 0 ? 
+		dist_factor / disparity : 
 		std::numeric_limits<float>::quiet_NaN();
 	}
 
