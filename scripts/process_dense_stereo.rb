@@ -67,6 +67,7 @@ log_files.each_with_index do |log_file,index|
     # collect the stereo images from the output port
     dense_stereo.distance_frame.connect_to do |data, name|
 	vizkit_dense_stereo.updateDistanceImage data if data
+	data
     end
 
     Vizkit.display log.camera_left.frame
