@@ -65,7 +65,29 @@ log_files.each_with_index do |log_file,index|
     
     # configure libElas
     libElas_conf = dense_stereo.libElas_conf
-    libElas_conf.postprocess_only_left = true
+    libElas_conf.disp_min              = 4
+    libElas_conf.disp_max              = 400
+    libElas_conf.support_threshold     = 0.88
+    libElas_conf.support_texture       = 10
+    libElas_conf.candidate_stepsize    = 3 #5
+    libElas_conf.incon_window_size     = 5
+    libElas_conf.incon_threshold       = 5
+    libElas_conf.incon_min_support     = 5
+    libElas_conf.add_corners           = false
+    libElas_conf.grid_size             = 20
+    libElas_conf.beta                  = 0.02
+    libElas_conf.gamma                 = 3
+    libElas_conf.sigma                 = 1
+    libElas_conf.sradius               = 2
+    libElas_conf.match_texture         = 0 #0,1
+    libElas_conf.lr_threshold          = 5 #5,2
+    libElas_conf.speckle_sim_threshold = 1 #1.5,1
+    libElas_conf.speckle_size          = 200
+    libElas_conf.ipol_gap_width        = 3 #vorher:5
+    libElas_conf.filter_median         = false
+    libElas_conf.filter_adaptive_mean  = true
+    libElas_conf.postprocess_only_left = false
+    libElas_conf.subsampling           = false
     dense_stereo.libElas_conf = libElas_conf
     
     #set the pixel size of the camera
