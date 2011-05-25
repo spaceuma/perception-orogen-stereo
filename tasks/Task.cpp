@@ -47,7 +47,7 @@ void Task::updateHook()
     if(_left_frame.read(leftFrame) == RTT::NewData && _right_frame.read(rightFrame) == RTT::NewData)
     {
       //check if something is connected to the outputports otherwise do not calculate anything
-      if(_distance_frame.connected())
+      if(_distance_frame.connected() || _disparity_frame.connected())
       {
       const size_t 
 	  width = leftFrame.getSize().width, 
@@ -94,20 +94,37 @@ void Task::updateHook()
 	//calculate the disparities
 	dense_stereo->process_FramePair(leftCvFrame, rightCvFrame, leftCvDisparityFrame, rightCvDisparityFrame);
 
-	// set distance factor
-	const float dist_factor = fabs( calibration.CamLeft.fx * calibration.extrinsic.tx * 1e-3 ); // baseline in meters 
-
-	// calculate distance as inverse of disparity
-	for( size_t i=0; i<size; i++ )
+	// create a frame to display the disparity image (mainly for debug)
+	if( _disparity_frame.connected() )
 	{
-	    const float disparity = distanceFrame.data[i];
-	    distanceFrame.data[i] = disparity > 0 ? 
-		dist_factor / disparity : 
-		std::numeric_limits<float>::quiet_NaN();
+	    base::samples::frame::Frame disparity_image( 
+		    width, height, 8, base::samples::frame::MODE_GRAYSCALE );
+	    const float scaling_factor = 255.0f / *std::max_element( distanceFrame.data.begin(), distanceFrame.data.end() );
+	    uint8_t *data = disparity_image.getImagePtr();
+	    
+	    for( size_t i=0; i<size; i++ )
+		data[i] = distanceFrame.data[i] * scaling_factor;
+
+	    _disparity_frame.write( disparity_image );
 	}
 
-	//write to outputs
-	_distance_frame.write(distanceFrame);
+	if( _distance_frame.connected() )
+	{
+	    // set distance factor
+	    const float dist_factor = fabs( calibration.CamLeft.fx * calibration.extrinsic.tx * 1e-3 ); // baseline in meters 
+
+	    // calculate distance as inverse of disparity
+	    for( size_t i=0; i<size; i++ )
+	    {
+		const float disparity = distanceFrame.data[i];
+		distanceFrame.data[i] = disparity > 0 ? 
+		    dist_factor / disparity : 
+		    std::numeric_limits<float>::quiet_NaN();
+	    }
+
+	    //write to outputs
+	    _distance_frame.write(distanceFrame);
+	}
       }
     }
 }

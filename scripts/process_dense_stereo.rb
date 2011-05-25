@@ -85,6 +85,7 @@ log_files.each_with_index do |log_file,index|
 	data
     end
 
+    Vizkit.display dense_stereo.disparity_frame
     Vizkit.display log.camera_left.frame
     Vizkit.control log
 
