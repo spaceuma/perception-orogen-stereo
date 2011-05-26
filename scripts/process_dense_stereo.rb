@@ -79,8 +79,8 @@ log_files.each_with_index do |log_file,index|
     libElas_conf.gamma                 = 3
     libElas_conf.sigma                 = 1
     libElas_conf.sradius               = 2
-    libElas_conf.match_texture         = 0 #0,1
-    libElas_conf.lr_threshold          = 5 #5,2
+    libElas_conf.match_texture         = 1 #0,1
+    libElas_conf.lr_threshold          = 2 #vorher:5
     libElas_conf.speckle_sim_threshold = 1 #1.5,1
     libElas_conf.speckle_size          = 200
     libElas_conf.ipol_gap_width        = 3 #vorher:5
