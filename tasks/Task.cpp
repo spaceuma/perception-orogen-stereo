@@ -49,9 +49,11 @@ void Task::updateHook()
       //check if something is connected to the outputports otherwise do not calculate anything
       if(_distance_frame.connected() || _disparity_frame.connected())
       {
+	//if sub-sampling is activated image dimensions should be width/2 x height/2 (rounded towards zero)
+	const bool subsampling = _libElas_conf.get().subsampling;
       const size_t 
-	  width = leftFrame.getSize().width, 
-	  height = leftFrame.getSize().height, 
+	  width = subsampling ? leftFrame.getSize().width / 2.0f : leftFrame.getSize().width, 
+	  height = subsampling ? leftFrame.getSize().height / 2.0f : leftFrame.getSize().height, 
 	  size = width * height;
 
 	//rotate frames by 180 deg and switch them
@@ -85,6 +87,16 @@ void Task::updateHook()
 	distanceFrame.center_x = -calibration.CamLeft.cx / calibration.CamLeft.fx; 
 	distanceFrame.center_y = -calibration.CamLeft.cy / calibration.CamLeft.fy; 
 	
+	// sub-sampling reduces the image width and height by a factor of 2.
+	// this leads to an aditional division by 2 for focal length and center,
+	// but as both are appearing in the center parameter calculation only the
+	// scale parameters need multiplication with 2
+	if( subsampling )
+	{
+	  distanceFrame.scale_x *= 2.0f;
+	  distanceFrame.scale_y *= 2.0f;
+	}
+	
 	// cv wrappers for the resulting disparity images. 
 	// only store the left image, discard the right one
 	cv::Mat leftCvDisparityFrame( width, height, cv::DataType<float>::type,
@@ -111,7 +123,9 @@ void Task::updateHook()
 	if( _distance_frame.connected() )
 	{
 	    // set distance factor
-	    const float dist_factor = fabs( calibration.CamLeft.fx * calibration.extrinsic.tx * 1e-3 ); // baseline in meters 
+	    // if sub-sampling is active focal length has to be divided by 2 same as width
+	    const float focal_length = subsampling ? calibration.CamLeft.fx / 2.0f : calibration.CamLeft.fx;
+	    const float dist_factor = fabs( focal_length * calibration.extrinsic.tx * 1e-3 ); // baseline in meters 
 
 	    // calculate distance as inverse of disparity
 	    for( size_t i=0; i<size; i++ )
@@ -122,7 +136,7 @@ void Task::updateHook()
 		    std::numeric_limits<float>::quiet_NaN();
 	    }
 
-	    //write to outputs
+	    //write to output
 	    _distance_frame.write(distanceFrame);
 	}
       }
