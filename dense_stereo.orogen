@@ -13,7 +13,6 @@ using_library "dense_stereo"
 import_types_from "base"
 
 import_types_from "dense_stereo/dense_stereo_types.h"
-#import_types_from "Disparity_Type.h"
 
 task_context "Task" do
    # A configuration property (here, a std::string). Its value can be retrieved
@@ -22,10 +21,6 @@ task_context "Task" do
 	doc "calibration parameters for stereo camera setup"
    property("libElas_conf", "/dense_stereo/libElasConfiguration").
 	doc "configuration values for libElas"
-   property("cameraPixelWidth", "double").
-	doc "width of one camera pixel in meters"
-   property("cameraPixelHeight", "double").
-	doc "height of one camera pixel in meters"
 
    input_port "left_frame", "/base/samples/frame/Frame"
    input_port "right_frame", "/base/samples/frame/Frame"
