@@ -11,6 +11,7 @@ def usage
 end
 
 calibration = :wide
+batch_mode = false
 
 opt_parse = OptionParser.new do |opt|
     opt.banner = "process_dense_stereo.rb [-m calibration_file|-s calibration_symbol] <log_file|log_file_dir>"
@@ -19,6 +20,9 @@ opt_parse = OptionParser.new do |opt|
     end
     opt.on("-s calibration_symbol", String, "Use build in calibration by the given name") do |name|
 	calibration = name.to_sym
+    end
+    opt.on("-b", String, "Use batch mode") do |name|
+	batch_mode = true
     end
 end
 
@@ -29,7 +33,7 @@ if args.size < 1
 end
 
 if not args.empty?
-    log_files = args[0]
+    log_files = args
 else
     log_files = Dir.glob(File.join("**","*[0-9].log"))
 end
@@ -40,6 +44,12 @@ log_files.each_with_index do |log_file,index|
   puts
   puts
   puts "Starting to convert #{log_file}"
+
+  # filter out properties.log files
+  if File.directory? log_file
+      log_file = Dir.glob( File.join( log_file, "*.log" ) ).reject{|v| v.include? "properties"}
+  end
+
   log = Orocos::Log::Replay.open(log_file)
   
   Orocos::CORBA.max_message_size = 8000000
@@ -53,10 +63,11 @@ log_files.each_with_index do |log_file,index|
     log.camera_left.frame.connect_to dense_stereo.left_frame, :type => :buffer, :size => 1
     log.camera_right.frame.connect_to dense_stereo.right_frame,:type => :buffer, :size => 1
     
-    Orocos.log_all_ports
-
-    #reader = dense_stereo.distance_frame.reader(:type => :buffer, :size => 1)
-    #counter = 0
+    # only generate the output log in batch mode
+    if batch_mode 
+	log_dir = if File.directory? log_file then log_file else File.dirname log_file end
+	Orocos.log_all_ports( {:log_dir => log_dir} )
+    end
 
     # configure the camera calibration
     dense_stereo.stereoCameraCalibration do |stereoCamCal|
@@ -90,29 +101,29 @@ log_files.each_with_index do |log_file,index|
     libElas_conf.subsampling           = false
     dense_stereo.libElas_conf = libElas_conf
     
-    #set the pixel size of the camera
-    dense_stereo.cameraPixelWidth = 6.4*10**-6
-    dense_stereo.cameraPixelHeight = 6.4*10**-6
-    
     dense_stereo.configure
     dense_stereo.start
 
-    # start the vizkit gui interface
-    widget = Vizkit.default_loader.create_widget("vizkit::QVizkitWidget")
-    vizkit_dense_stereo = widget.createPlugin("DistanceImageVisualization", "dense_stereo")
-    
-    # collect the stereo images from the output port
-    dense_stereo.distance_frame.connect_to do |data, name|
-	vizkit_dense_stereo.updateDistanceImage data if data
-	data
+    if batch_mode 
+	log.run(true, 1)
+    else
+	# start the vizkit gui interface
+	widget = Vizkit.default_loader.create_widget("vizkit::QVizkitWidget")
+	vizkit_dense_stereo = widget.createPlugin("DistanceImageVisualization", "dense_stereo")
+
+	# collect the stereo images from the output port
+	dense_stereo.distance_frame.connect_to do |data, name|
+	    vizkit_dense_stereo.updateDistanceImage data if data
+	    data
+	end
+
+	Vizkit.display dense_stereo.disparity_frame
+	Vizkit.display log.camera_left.frame
+	Vizkit.control log
+
+	widget.show
+
+	Vizkit.exec
     end
-
-    Vizkit.display dense_stereo.disparity_frame
-    Vizkit.display log.camera_left.frame
-    Vizkit.control log
-
-    widget.show
-
-    Vizkit.exec
   end
 end
