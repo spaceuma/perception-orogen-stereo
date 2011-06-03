@@ -90,12 +90,16 @@ log_files.each_with_index do |log_file,index|
     libElas_conf.subsampling           = false
     dense_stereo.libElas_conf = libElas_conf
     
+    #set the pixel size of the camera
+    dense_stereo.cameraPixelWidth = 6.4*10**-6
+    dense_stereo.cameraPixelHeight = 6.4*10**-6
+    
     dense_stereo.configure
     dense_stereo.start
 
     # start the vizkit gui interface
     widget = Vizkit.default_loader.create_widget("vizkit::QVizkitWidget")
-    vizkit_dense_stereo = widget.createPlugin("dense_stereo", "DistanceImageVisualization")
+    vizkit_dense_stereo = widget.createPlugin("DistanceImageVisualization", "dense_stereo")
     
     # collect the stereo images from the output port
     dense_stereo.distance_frame.connect_to do |data, name|

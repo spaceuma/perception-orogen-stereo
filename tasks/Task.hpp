@@ -20,6 +20,9 @@ namespace dense_stereo {
 	///Instance of dense stereo processing
 	DenseStereo *dense_stereo;
 
+	base::samples::frame::Frame leftFrame, rightFrame;
+	bool leftFrameValid, rightFrameValid;
+
     public:
         Task(std::string const& name = "dense_stereo::Task", TaskCore::TaskState initial_state = Stopped);
 

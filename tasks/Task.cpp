@@ -3,10 +3,12 @@
 #include "Task.hpp"
 #include <limits>
 
+#include <base/time.h>
+
 using namespace dense_stereo;
 
 Task::Task(std::string const& name, TaskCore::TaskState initial_state)
-    : TaskBase(name, initial_state)
+    : TaskBase(name, initial_state), leftFrameValid(false), rightFrameValid(false)
 {
 }
 
@@ -41,14 +43,16 @@ bool Task::configureHook()
 void Task::updateHook()
 {
     TaskBase::updateHook();
+
+    while( _left_frame.read(leftFrame) == RTT::NewData ) leftFrameValid = true;
+    while( _right_frame.read(rightFrame) == RTT::NewData ) rightFrameValid = true;
     
-    base::samples::frame::Frame leftFrame, rightFrame;
-    
-    if(_left_frame.read(leftFrame) == RTT::NewData && _right_frame.read(rightFrame) == RTT::NewData)
+    // check conditions which must be met so we can/should calculate the distance image
+    if( ( std::abs((leftFrame.time - rightFrame.time).toMilliseconds()) < 5) 
+	    && leftFrameValid && rightFrameValid 
+	    && (_distance_frame.connected() || _disparity_frame.connected())
+	    )
     {
-      //check if something is connected to the outputports otherwise do not calculate anything
-      if(_distance_frame.connected() || _disparity_frame.connected())
-      {
 	//if sub-sampling is activated image dimensions should be width/2 x height/2 (rounded towards zero)
 	const bool subsampling = _libElas_conf.get().subsampling;
       const size_t 
@@ -139,7 +143,7 @@ void Task::updateHook()
 	    //write to output
 	    _distance_frame.write(distanceFrame);
 	}
-      }
+      
     }
 }
 // void Task::errorHook()
