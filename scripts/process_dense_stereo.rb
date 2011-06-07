@@ -47,10 +47,11 @@ log_files.each_with_index do |log_file,index|
 
   # filter out properties.log files
   if File.directory? log_file
-      log_file = Dir.glob( File.join( log_file, "*.log" ) ).reject{|v| v.include? "properties"}
+      log_array = Dir.glob( File.join( log_file, "*.log" ) ).reject{|v| v.include? "properties"}
+      log = Orocos::Log::Replay.open( log_array )
+  else
+      log = Orocos::Log::Replay.open( log_file )
   end
-
-  log = Orocos::Log::Replay.open(log_file)
   
   Orocos::CORBA.max_message_size = 8000000
 
