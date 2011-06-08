@@ -3,9 +3,6 @@
 #ifndef DENSE_STEREO_TASK_TASK_HPP
 #define DENSE_STEREO_TASK_TASK_HPP
 
-#include <opencv/highgui.h>
-#include <opencv/cv.h>
-
 #include <dense_stereo/densestereo.h>
 #include <base/samples/frame.h>
 

@@ -3,6 +3,10 @@
 #include "Task.hpp"
 #include <limits>
 
+#include <stddef.h>
+#include <opencv/highgui.h>
+#include <opencv/cv.h>
+
 #include <base/time.h>
 
 using namespace dense_stereo;
