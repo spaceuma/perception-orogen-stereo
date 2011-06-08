@@ -8,7 +8,7 @@ name "dense_stereo"
 
 # If the component/deployments use data types that are defined in other oroGen
 # projects, these projects should be imported there as well.
-using_library "opencv"
+using_library "opencv", :typekit => false
 using_library "dense_stereo"
 import_types_from "base"
 
