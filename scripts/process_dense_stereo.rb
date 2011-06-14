@@ -77,27 +77,34 @@ log_files.each_with_index do |log_file,index|
     
     # configure libElas
     libElas_conf = dense_stereo.libElas_conf
-    libElas_conf.disp_min              = 4
-    libElas_conf.disp_max              = 400
-    libElas_conf.support_threshold     = 0.88
+    libElas_conf.disp_min              = 5 #^= distance up to 14m
+    libElas_conf.disp_max              = 400 #^= 0.1757m
+    libElas_conf.support_threshold     = 0.9
     libElas_conf.support_texture       = 10
-    libElas_conf.candidate_stepsize    = 3 #5
+    libElas_conf.candidate_stepsize    = 3 #3,5
     libElas_conf.incon_window_size     = 5
     libElas_conf.incon_threshold       = 5
     libElas_conf.incon_min_support     = 5
     libElas_conf.add_corners           = false
     libElas_conf.grid_size             = 20
-    libElas_conf.beta                  = 0.02
-    libElas_conf.gamma                 = 3
-    libElas_conf.sigma                 = 1
-    libElas_conf.sradius               = 2
+
+    #values out of the paper
+    libElas_conf.beta                  = 0.03
+    libElas_conf.gamma                 = 15
+    libElas_conf.sigma                 = 3
+    
+#     libElas_conf.beta                  = 0.02
+#     libElas_conf.gamma                 = 3
+#     libElas_conf.sigma                 = 1
+
+    libElas_conf.sradius               = 2    
     libElas_conf.match_texture         = 1 #0,1
-    libElas_conf.lr_threshold          = 2 #vorher:5
-    libElas_conf.speckle_sim_threshold = 1 #1.5,1
-    libElas_conf.speckle_size          = 200
+    libElas_conf.lr_threshold          = 1 #innen auch 1
+    libElas_conf.speckle_sim_threshold = 2
+    libElas_conf.speckle_size          = 350
     libElas_conf.ipol_gap_width        = 3 #vorher:5
     libElas_conf.filter_median         = false
-    libElas_conf.filter_adaptive_mean  = true
+    libElas_conf.filter_adaptive_mean  = false
     libElas_conf.postprocess_only_left = false
     libElas_conf.subsampling           = false
     dense_stereo.libElas_conf = libElas_conf
