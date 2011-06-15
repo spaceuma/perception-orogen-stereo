@@ -102,7 +102,7 @@ log_files.each_with_index do |log_file,index|
     libElas_conf.lr_threshold          = 1 #innen auch 1
     libElas_conf.speckle_sim_threshold = 2
     libElas_conf.speckle_size          = 350
-    libElas_conf.ipol_gap_width        = 3 #vorher:5
+    libElas_conf.ipol_gap_width        = 0 #vorher:5
     libElas_conf.filter_median         = false
     libElas_conf.filter_adaptive_mean  = false
     libElas_conf.postprocess_only_left = false
