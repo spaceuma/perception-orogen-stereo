@@ -185,15 +185,51 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
     {
 	base::samples::frame::Frame disparity_image( 
 		distanceFrame.width, distanceFrame.height, 8, 
-		base::samples::frame::MODE_GRAYSCALE );
+		base::samples::frame::MODE_RGB );
 	disparity_image.time = leftFrame.time;
 	const float scaling_factor = 255.0f / *std::max_element( distanceFrame.data.begin(), distanceFrame.data.end() );
 	uint8_t *data = disparity_image.getImagePtr();
 
-	for( size_t i=0; i<distanceFrame.data.size(); ++i )
-	    data[i] = distanceFrame.data[i] * scaling_factor;
+        static bool lut_initialized = false;
+        static uint8_t red[256];
+        static uint8_t green[256];
+        static uint8_t blue[256];
 
-	_disparity_frame.write( disparity_image );
+        if(!lut_initialized) {
+            //populate some lookup tables for grayscale depth to color depth matching
+            for(int i = 0; i < 256; ++i)
+            red[i] = green[i] = blue[i] = 0;
+            for(int i = 0; i < 64; ++i){
+            red[i+95] = std::min(4*i, 255);
+            green[i+31] = std::min(4*i, 255);
+            blue[i] = std::min(132 + 4*i, 255);
+            }
+            for(int i = 0; i < 65; ++i){
+            red[i+159] = 255;
+            green[i+95] = 255;
+            blue[i+31] = 255;
+            }
+            for(int i = 0; i < 64; ++i){
+            if(i < 32) red[i+224] = std::max(4*(63 - i), 0);
+            green[i+160] = std::max(4*(63 - i), 0);
+            blue[i+96] = std::max(4*(63 - i), 0);
+            }
+            lut_initialized = true;
+        }
+
+        for( size_t i=0; i<size; ++i ) {
+            if(distanceFrame.data[i] > 0){
+            *(data++) = red[(uint8_t)(distanceFrame.data[i] * scaling_factor)];
+            *(data++) = green[(uint8_t)(distanceFrame.data[i] * scaling_factor)];
+            *(data++) = blue[(uint8_t)(distanceFrame.data[i] * scaling_factor)];
+            } else { // if depth information is not valid --> black pixel
+            *(data++) = 0;
+            *(data++) = 0;
+            *(data++) = 0;
+            }
+        }
+
+        _disparity_frame.write( disparity_image );
     }
 
     // calculate distance images from disparity images
