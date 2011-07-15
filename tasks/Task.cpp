@@ -61,8 +61,8 @@ void Task::updateHook()
 	//if sub-sampling is activated image dimensions should be width/2 x height/2 (rounded towards zero)
 	const bool subsampling = _libElas_conf.get().subsampling;
       const size_t 
-	  width = subsampling ? leftFrame.getSize().width / 2.0f : leftFrame.getSize().width, 
-	  height = subsampling ? leftFrame.getSize().height / 2.0f : leftFrame.getSize().height, 
+	  width = subsampling ? leftFrame.getSize().width / 2 : leftFrame.getSize().width, 
+	  height = subsampling ? leftFrame.getSize().height / 2 : leftFrame.getSize().height, 
 	  size = width * height;
 
 	//rotate frames by 180 deg and switch them
@@ -120,6 +120,7 @@ void Task::updateHook()
 	{
 	    base::samples::frame::Frame disparity_image( 
 		    width, height, 8, base::samples::frame::MODE_GRAYSCALE );
+	    disparity_image.time = rightFrame.time;
 	    const float scaling_factor = 255.0f / *std::max_element( distanceFrame.data.begin(), distanceFrame.data.end() );
 	    uint8_t *data = disparity_image.getImagePtr();
 	    
