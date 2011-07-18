@@ -7,6 +7,7 @@
 #include <opencv/highgui.h>
 #include <opencv/cv.h>
 
+#include <dense_stereo/densestereo.h>
 #include <base/time.h>
 
 using namespace dense_stereo;

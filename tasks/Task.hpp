@@ -3,13 +3,16 @@
 #ifndef DENSE_STEREO_TASK_TASK_HPP
 #define DENSE_STEREO_TASK_TASK_HPP
 
-#include <dense_stereo/densestereo.h>
+#include <stddef.h>
+#include <opencv/highgui.h>
+#include <opencv/cv.h>
 #include <base/samples/frame.h>
 
 #include "dense_stereo/TaskBase.hpp"
 #include <dense_stereo/dense_stereo_types.h>
 
 namespace dense_stereo {
+    class DenseStereo;
     class Task : public TaskBase
     {
 	friend class TaskBase;
