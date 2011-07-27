@@ -13,11 +13,12 @@ using_library "dense_stereo"
 import_types_from "base"
 
 import_types_from "dense_stereo/dense_stereo_types.h"
+import_types_from "frame_helper/Calibration.h"
 
 task_context "Task" do
    # A configuration property (here, a std::string). Its value can be retrieved
    # in the C++ code with # _config_value.get() and _config_value.set(new_value).
-   property("stereoCameraCalibration", "/dense_stereo/StereoCameraCalibration").
+   property("stereoCameraCalibration", "/frame_helper/StereoCalibration").
 	doc "calibration parameters for stereo camera setup"
    property("libElas_conf", "/dense_stereo/libElasConfiguration").
 	doc "configuration values for libElas"

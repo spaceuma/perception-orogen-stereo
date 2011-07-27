@@ -4,12 +4,10 @@
 #define DENSE_STEREO_TASK_TASK_HPP
 
 #include <stddef.h>
-#include <opencv/highgui.h>
 #include <opencv/cv.h>
 #include <base/samples/frame.h>
 
 #include "dense_stereo/TaskBase.hpp"
-#include <dense_stereo/dense_stereo_types.h>
 
 namespace dense_stereo {
     class DenseStereo;

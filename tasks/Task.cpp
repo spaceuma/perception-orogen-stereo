@@ -4,11 +4,12 @@
 #include <limits>
 
 #include <stddef.h>
-#include <opencv/highgui.h>
 #include <opencv/cv.h>
 
 #include <dense_stereo/densestereo.h>
+#include <dense_stereo/dense_stereo_types.h>
 #include <base/time.h>
+#include <frame_helper/Calibration.h>
 
 using namespace dense_stereo;
 
@@ -33,7 +34,8 @@ bool Task::configureHook()
     dense_stereo = new DenseStereo();
 
     //configure dense stereo
-    dense_stereo->setCalibrationAndLibElasConfiguration(_stereoCameraCalibration.get(), _libElas_conf.get());
+    dense_stereo->setStereoCalibration(_stereoCameraCalibration.get(), 640, 480);
+    dense_stereo->setLibElasConfiguration(_libElas_conf.get());
 
     if (! TaskBase::configureHook())
         return false;
@@ -84,17 +86,17 @@ void Task::updateHook()
 	distanceFrame.time = rightFrame.time;
 
 	// get calibration to extract scales, baseline and focal length
-	const StereoCameraCalibration &calibration = _stereoCameraCalibration.get();
+	const frame_helper::StereoCalibration &calibration = _stereoCameraCalibration.get();
 	
 	// scale and center parameters of the distance image are the inverse of the
 	// f and c values from the camera calibration. 
 	//
 	// so analogous for x and y we get scale = 1/f and offset = -c/f
 	// 
-	distanceFrame.scale_x = 1.0f / calibration.CamLeft.fx;
-	distanceFrame.scale_y = 1.0f / calibration.CamLeft.fy;
-	distanceFrame.center_x = -calibration.CamLeft.cx / calibration.CamLeft.fx; 
-	distanceFrame.center_y = -calibration.CamLeft.cy / calibration.CamLeft.fy; 
+	distanceFrame.scale_x = 1.0f / calibration.camLeft.fx;
+	distanceFrame.scale_y = 1.0f / calibration.camLeft.fy;
+	distanceFrame.center_x = -calibration.camLeft.cx / calibration.camLeft.fx; 
+	distanceFrame.center_y = -calibration.camLeft.cy / calibration.camLeft.fy; 
 	
 	// sub-sampling reduces the image width and height by a factor of 2.
 	// this leads to an aditional division by 2 for focal length and center,
@@ -124,7 +126,7 @@ void Task::updateHook()
 	    const float scaling_factor = 255.0f / *std::max_element( distanceFrame.data.begin(), distanceFrame.data.end() );
 	    uint8_t *data = disparity_image.getImagePtr();
 	    
-	    for( size_t i=0; i<size; i++ )
+	    for( size_t i=0; i<size; ++i )
 		data[i] = distanceFrame.data[i] * scaling_factor;
 
 	    _disparity_frame.write( disparity_image );
@@ -134,11 +136,11 @@ void Task::updateHook()
 	{
 	    // set distance factor
 	    // if sub-sampling is active focal length has to be divided by 2 same as width
-	    const float focal_length = subsampling ? calibration.CamLeft.fx / 2.0f : calibration.CamLeft.fx;
+	    const float focal_length = subsampling ? calibration.camLeft.fx / 2.0f : calibration.camLeft.fx;
 	    const float dist_factor = fabs( focal_length * calibration.extrinsic.tx * 1e-3 ); // baseline in meters 
 
 	    // calculate distance as inverse of disparity
-	    for( size_t i=0; i<size; i++ )
+	    for( size_t i=0; i<size; ++i )
 	    {
 		const float disparity = distanceFrame.data[i];
 		distanceFrame.data[i] = disparity > 0 ? 

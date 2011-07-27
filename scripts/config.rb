@@ -33,17 +33,17 @@ def cal_config( cal_name, stereoCamCal )
 	puts "using config from file #{cal_name}"
 	pp calib
 
-	camLeft = stereoCamCal.CamLeft
+	camLeft = stereoCamCal.camLeft
 	camLeft.fx, camLeft.fy = calib.fc_left 
 	camLeft.cx, camLeft.cy = calib.cc_left
 	camLeft.d0, camLeft.d1, camLeft.d2, camLeft.d3 = calib.kc_left
-	stereoCamCal.CamLeft = camLeft
+	stereoCamCal.camLeft = camLeft
 
-	camRight = stereoCamCal.CamRight
+	camRight = stereoCamCal.camRight
 	camRight.fx, camRight.fy = calib.fc_right 
 	camRight.cx, camRight.cy = calib.cc_right
 	camRight.d0, camRight.d1, camRight.d2, camRight.d3 = calib.kc_right
-	stereoCamCal.CamRight = camRight
+	stereoCamCal.camRight = camRight
 
 	extrinsic = stereoCamCal.extrinsic
 	extrinsic.tx, extrinsic.ty, extrinsic.tz = calib.T
@@ -53,7 +53,7 @@ def cal_config( cal_name, stereoCamCal )
     elsif( cal_name == :wide)
 	puts "wide calibration used"
       #asguard wide angle lens
-      camLeft = stereoCamCal.CamLeft
+      camLeft = stereoCamCal.camLeft
       #intrinsic parameters
       camLeft.fx = 284.24382
       camLeft.fy = 285.20982
@@ -63,9 +63,9 @@ def cal_config( cal_name, stereoCamCal )
       camLeft.d1 = 0.00094
       camLeft.d2 = -0.00069
       camLeft.d3 = 0.00145
-      stereoCamCal.CamLeft = camLeft
+      stereoCamCal.camLeft = camLeft
       
-      camRight = stereoCamCal.CamRight
+      camRight = stereoCamCal.camRight
       camRight.fx = 285.57255
       camRight.fy = 286.28520
       camRight.cx = 318.59641
@@ -74,7 +74,7 @@ def cal_config( cal_name, stereoCamCal )
       camRight.d1 = 0.00244
       camRight.d2 = 0.00007
       camRight.d3 = 0.00010
-      stereoCamCal.CamRight = camRight
+      stereoCamCal.camRight = camRight
       
       extrinsic = stereoCamCal.extrinsic
       extrinsic.tx = -251.92827
@@ -89,7 +89,7 @@ def cal_config( cal_name, stereoCamCal )
     else
 	puts "normal calibration used"
       #asguard cam guppy mar 2011
-      camLeft = stereoCamCal.CamLeft
+      camLeft = stereoCamCal.camLeft
       #intrinsic parameters
       camLeft.fx = 701.60321
       camLeft.fy = 703.61811
@@ -99,9 +99,9 @@ def cal_config( cal_name, stereoCamCal )
       camLeft.d1 = 0.05658
       camLeft.d2 = -0.00060
       camLeft.d3 = 0.00207
-      stereoCamCal.CamLeft = camLeft
+      stereoCamCal.camLeft = camLeft
       
-      camRight = stereoCamCal.CamRight
+      camRight = stereoCamCal.camRight
       camRight.fx = 701.48689
       camRight.fy = 703.66743
       camRight.cx = 317.56601
@@ -110,7 +110,7 @@ def cal_config( cal_name, stereoCamCal )
       camRight.d1 = 0.08554
       camRight.d2 = -0.00080
       camRight.d3 = -0.00071
-      stereoCamCal.CamRight = camRight
+      stereoCamCal.camRight = camRight
       
       extrinsic = stereoCamCal.extrinsic
       extrinsic.tx = -253.28725
