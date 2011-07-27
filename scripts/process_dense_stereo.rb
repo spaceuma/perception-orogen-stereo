@@ -57,7 +57,7 @@ log_files.each_with_index do |log_file,index|
 
   Orocos.initialize
   
-  Orocos::Process.spawn 'dense_stereo_test', 'valgrind'=>false, "wait" => 1000 do |p|
+  Orocos::Process.spawn 'dense_stereo_test', 'valgrind'=>false, "wait" => 1 do |p|
 
     dense_stereo = p.task('dense_stereo')
 
@@ -117,7 +117,7 @@ log_files.each_with_index do |log_file,index|
     else
 	# start the vizkit gui interface
 	widget = Vizkit.default_loader.create_widget("vizkit::QVizkitWidget")
-	vizkit_dense_stereo = widget.createPlugin("DistanceImageVisualization", "dense_stereo")
+	vizkit_dense_stereo = widget.createPlugin("dense_stereo", "DistanceImageVisualization")
 
 	# collect the stereo images from the output port
 	dense_stereo.distance_frame.connect_to do |data, name|
