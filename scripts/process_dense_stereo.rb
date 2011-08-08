@@ -116,7 +116,7 @@ log_files.each_with_index do |log_file,index|
 	log.run(true, 1)
     else
 	# start the vizkit gui interface
-	widget = Vizkit.default_loader.create_widget("vizkit::QVizkitWidget")
+	widget = Vizkit.default_loader.create_widget("vizkit::Vizkit3DWidget")
 	vizkit_dense_stereo = widget.createPlugin("dense_stereo", "DistanceImageVisualization")
 
 	# collect the stereo images from the output port
