@@ -6,20 +6,37 @@
 #include <stddef.h>
 #include <opencv/cv.h>
 #include <base/samples/frame.h>
+#include <frame_helper/CalibrationCv.h>
 
 #include "dense_stereo/TaskBase.hpp"
 
+namespace stereo
+{
+    class StereoFeatures;
+}
+
 namespace dense_stereo {
+
     class DenseStereo;
+
     class Task : public TaskBase
     {
 	friend class TaskBase;
     protected:
 	///Instance of dense stereo processing
 	DenseStereo *dense_stereo;
+	stereo::StereoFeatures *sparse_stereo;
 
 	base::samples::frame::Frame leftFrame, rightFrame;
 	bool leftFrameValid, rightFrameValid;
+
+	void initCalibration( cv::Size imageSize );
+	void denseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage );
+	void sparseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage );
+
+	base::samples::frame::Frame sparseDebugFrame;
+	frame_helper::StereoCalibrationCv calib;
+	cv::Mat leftRectified, rightRectified;
 
     public:
         Task(std::string const& name = "dense_stereo::Task", TaskCore::TaskState initial_state = Stopped);

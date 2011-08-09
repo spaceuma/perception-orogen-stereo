@@ -25,7 +25,11 @@ task_context "Task" do
 
    input_port "left_frame", "/base/samples/frame/Frame"
    input_port "right_frame", "/base/samples/frame/Frame"
+   property( "image_rectified", "bool", false ).
+	doc( "if set to true, the input images are assumed to already be rectified." )
 
+   output_port("sparse_debug", "/base/samples/frame/Frame").
+        doc "debug frame for the sparse processing library."
    output_port("disparity_frame", "/base/samples/frame/Frame").
 	doc "disparity image for the left input camera. Mainly for debug purposes."
    output_port("distance_frame", "/dense_stereo/distance_image").
