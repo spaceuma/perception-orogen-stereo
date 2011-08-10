@@ -5,6 +5,7 @@
 
 #include <stddef.h>
 #include <opencv/cv.h>
+#include <opencv/highgui.h>
 
 #include <dense_stereo/densestereo.h>
 #include <dense_stereo/sparse_stereo.hpp>
@@ -77,13 +78,25 @@ void Task::updateHook()
 	if( calib.getImageSize() != imageSize )
 	    initCalibration( imageSize );
 
+	// convert ot greyscale if required
+	if( leftCvFrame.type() != CV_8UC1 )
+	{
+	    cv::Mat leftGray, rightGray; 
+
+	    cv::cvtColor( leftCvFrame, leftGray, CV_BGR2GRAY );
+	    cv::cvtColor( rightCvFrame, rightGray, CV_BGR2GRAY );
+
+	    leftCvFrame = leftGray;
+	    rightCvFrame = rightGray;
+	}
+
 	// if the images are not undistorted and rectified, we do it now
 	if( !_image_rectified.value() )
 	{
+	    cv::Mat leftRectified, rightRectified;
+
 	    calib.camLeft.undistortAndRectify( leftCvFrame, leftRectified );
 	    calib.camRight.undistortAndRectify( rightCvFrame, rightRectified );
-	    //cv::cvtColor( leftRectified, leftCvFrame, CV_BGR2GRAY );
-	    //cv::cvtColor( rightRectified, rightCvFrame, CV_BGR2GRAY );
 
 	    leftCvFrame = leftRectified;
 	    rightCvFrame = rightRectified;

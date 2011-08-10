@@ -36,7 +36,6 @@ namespace dense_stereo {
 
 	base::samples::frame::Frame sparseDebugFrame;
 	frame_helper::StereoCalibrationCv calib;
-	cv::Mat leftRectified, rightRectified;
 
     public:
         Task(std::string const& name = "dense_stereo::Task", TaskCore::TaskState initial_state = Stopped);
