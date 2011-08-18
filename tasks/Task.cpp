@@ -137,7 +137,7 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
     // pre-allocate the memory for the output disparity map, so we don't
     // have to copy it. This means we have to assert that the width and
     // height is the same for input and resulting disparity images
-    distance_image distanceFrame;
+    base::samples::DistanceImage distanceFrame;
     distanceFrame.data.resize( size );	
     distanceFrame.height = height;
     distanceFrame.width = width;	

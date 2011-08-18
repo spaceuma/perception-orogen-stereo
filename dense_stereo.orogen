@@ -13,6 +13,7 @@ using_library "dense_stereo"
 import_types_from "base"
 
 import_types_from "dense_stereo/dense_stereo_types.h"
+import_types_from "dense_stereo/sparse_stereo_types.h"
 import_types_from "frame_helper/Calibration.h"
 
 task_context "Task" do
@@ -32,8 +33,11 @@ task_context "Task" do
         doc "debug frame for the sparse processing library."
    output_port("disparity_frame", "/base/samples/frame/Frame").
 	doc "disparity image for the left input camera. Mainly for debug purposes."
-   output_port("distance_frame", "/dense_stereo/distance_image").
+   output_port("distance_frame", "/base/samples/DistanceImage").
 	doc "distance image for the left camera"
+
+   output_port("stereo_features", "/stereo/StereoFeatureArray").
+	doc "provides an array of 3d points with associated feature descriptors."
 
    port_driven
 end
