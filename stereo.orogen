@@ -1,4 +1,4 @@
-name "dense_stereo"
+name "stereo"
 # Optionally declare the version number
 # version "0.1"
 
@@ -9,11 +9,11 @@ name "dense_stereo"
 # If the component/deployments use data types that are defined in other oroGen
 # projects, these projects should be imported there as well.
 using_library "opencv", :typekit => false
-using_library "dense_stereo"
+using_library "stereo"
 import_types_from "base"
 
-import_types_from "dense_stereo/dense_stereo_types.h"
-import_types_from "dense_stereo/sparse_stereo_types.h"
+import_types_from "stereo/dense_stereo_types.h"
+import_types_from "stereo/sparse_stereo_types.h"
 import_types_from "frame_helper/Calibration.h"
 
 task_context "Task" do
@@ -21,7 +21,7 @@ task_context "Task" do
    # in the C++ code with # _config_value.get() and _config_value.set(new_value).
    property("stereoCameraCalibration", "/frame_helper/StereoCalibration").
 	doc "calibration parameters for stereo camera setup"
-   property("libElas_conf", "/dense_stereo/libElasConfiguration").
+   property("libElas_conf", "/stereo/libElasConfiguration").
 	doc "configuration values for libElas"
 
    input_port "left_frame", "/base/samples/frame/Frame"
@@ -44,9 +44,9 @@ end
 
 
 # Declares a deployment, i.e. an actual executable that contains various tasks.
-deployment "dense_stereo_test" do
+deployment "stereo_test" do
     # Declares it
-    task("dense_stereo", "Task")
+    task("stereo", "Task")
 
     add_default_logger
 end

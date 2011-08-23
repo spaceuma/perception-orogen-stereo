@@ -7,14 +7,13 @@
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 
-#include <dense_stereo/densestereo.h>
-#include <dense_stereo/sparse_stereo.hpp>
-#include <dense_stereo/dense_stereo_types.h>
+#include <stereo/densestereo.h>
+#include <stereo/sparse_stereo.hpp>
+#include <stereo/dense_stereo_types.h>
 #include <base/time.h>
 #include <frame_helper/Calibration.h>
 #include <frame_helper/FrameHelper.h>
 
-using namespace dense_stereo;
 using namespace stereo;
 
 Task::Task(std::string const& name, TaskCore::TaskState initial_state)
@@ -106,7 +105,8 @@ void Task::updateHook()
 	if( _distance_frame.connected() || _disparity_frame.connected() )
 	    denseStereo( leftCvFrame, rightCvFrame );
 
-	if( _sparse_debug.connected() )
+	// same for sparse
+	if( _sparse_debug.connected() || _stereo_features.connected() )
 	    sparseStereo( leftCvFrame, rightCvFrame );
     }
 }
@@ -127,6 +127,8 @@ void Task::initCalibration( const cv::Size imageSize )
 
 void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame )
 {
+    // TODO most of this stuff should go into the library
+
     //if sub-sampling is activated image dimensions should be width/2 x height/2 (rounded towards zero)
     const bool subsampling = _libElas_conf.get().subsampling;
     const size_t 
@@ -218,6 +220,8 @@ void Task::sparseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage )
     frame_helper::FrameHelper::copyMatToFrame( 
 	    sparse_stereo->getDebugImage(), sparseDebugFrame );
     _sparse_debug.write( sparseDebugFrame );
+    _stereo_features.write( 
+	    sparse_stereo->getStereoFeatures() );
 }
 
 // void Task::errorHook()

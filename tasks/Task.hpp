@@ -8,15 +8,11 @@
 #include <base/samples/frame.h>
 #include <frame_helper/CalibrationCv.h>
 
-#include "dense_stereo/TaskBase.hpp"
+#include "stereo/TaskBase.hpp"
 
-namespace stereo
-{
+namespace stereo {
+
     class StereoFeatures;
-}
-
-namespace dense_stereo {
-
     class DenseStereo;
 
     class Task : public TaskBase
@@ -38,7 +34,7 @@ namespace dense_stereo {
 	frame_helper::StereoCalibrationCv calib;
 
     public:
-        Task(std::string const& name = "dense_stereo::Task", TaskCore::TaskState initial_state = Stopped);
+        Task(std::string const& name = "stereo::Task", TaskCore::TaskState initial_state = Stopped);
 
 	~Task();
 
