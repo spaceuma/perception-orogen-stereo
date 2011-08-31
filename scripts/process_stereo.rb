@@ -14,7 +14,7 @@ calibration = :wide
 batch_mode = false
 
 opt_parse = OptionParser.new do |opt|
-    opt.banner = "process_dense_stereo.rb [-m calibration_file|-s calibration_symbol] <log_file|log_file_dir>"
+    opt.banner = "process_stereo.rb [-m calibration_file|-s calibration_symbol] <log_file|log_file_dir>"
     opt.on("-m calibration_file", String, "Filename of the stereo camera calibration from the Matlab Toolbox") do |name|
 	calibration = name
     end
@@ -57,12 +57,12 @@ log_files.each_with_index do |log_file,index|
 
   Orocos.initialize
   
-  Orocos::Process.spawn 'dense_stereo_test', 'valgrind'=>false, "wait" => 1 do |p|
+  Orocos::Process.spawn 'stereo_test', 'valgrind'=>false, "wait" => 1 do |p|
 
-    dense_stereo = p.task('dense_stereo')
+    stereo = p.task('stereo')
 
-    log.camera_left.frame.connect_to dense_stereo.left_frame, :type => :buffer, :size => 1
-    log.camera_right.frame.connect_to dense_stereo.right_frame,:type => :buffer, :size => 1
+    log.camera_left.frame.connect_to stereo.left_frame, :type => :buffer, :size => 1
+    log.camera_right.frame.connect_to stereo.right_frame,:type => :buffer, :size => 1
     
     # only generate the output log in batch mode
     if batch_mode 
@@ -71,12 +71,12 @@ log_files.each_with_index do |log_file,index|
     end
 
     # configure the camera calibration
-    dense_stereo.stereoCameraCalibration do |stereoCamCal|
+    stereo.stereoCameraCalibration do |stereoCamCal|
 	cal_config( calibration, stereoCamCal )
     end
     
     # configure libElas
-    libElas_conf = dense_stereo.libElas_conf
+    libElas_conf = stereo.libElas_conf
     libElas_conf.disp_min              = 5 #^= distance up to 14m
     libElas_conf.disp_max              = 400 #^= 0.1757m
     libElas_conf.support_threshold     = 0.9
@@ -107,29 +107,29 @@ log_files.each_with_index do |log_file,index|
     libElas_conf.filter_adaptive_mean  = false
     libElas_conf.postprocess_only_left = false
     libElas_conf.subsampling           = false
-    dense_stereo.libElas_conf = libElas_conf
+    stereo.libElas_conf = libElas_conf
     
-    dense_stereo.configure
-    dense_stereo.start
+    stereo.configure
+    stereo.start
 
     if batch_mode 
 	log.run(true, 1)
     else
 	# start the vizkit gui interface
 	widget = Vizkit.default_loader.create_widget("vizkit::Vizkit3DWidget")
-	vizkit_dense_stereo = widget.createPlugin("dense_stereo", "DistanceImageVisualization")
+	vizkit_stereo = widget.createPlugin("stereo", "DistanceImageVisualization")
+	widget.show
 
 	# collect the stereo images from the output port
-	dense_stereo.distance_frame.connect_to do |data, name|
-	    vizkit_dense_stereo.updateDistanceImage data if data
+	stereo.distance_frame.connect_to do |data, name|
+	    vizkit_stereo.updateDistanceImage data if data
 	    data
 	end
 
-	Vizkit.display dense_stereo.disparity_frame
+	Vizkit.display stereo.disparity_frame
 	Vizkit.display log.camera_left.frame
+	Vizkit.display stereo.sparse_debug
 	Vizkit.control log
-
-	widget.show
 
 	Vizkit.exec
     end
