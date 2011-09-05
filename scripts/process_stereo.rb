@@ -61,8 +61,8 @@ log_files.each_with_index do |log_file,index|
 
     stereo = p.task('stereo')
 
-    log.camera_left.frame.connect_to stereo.left_frame, :type => :buffer, :size => 1
-    log.camera_right.frame.connect_to stereo.right_frame,:type => :buffer, :size => 1
+    log.camera_left.frame.connect_to stereo.left_frame #, :type => :buffer, :size => 1
+    log.camera_right.frame.connect_to stereo.right_frame #,:type => :buffer, :size => 1
     
     # only generate the output log in batch mode
     if batch_mode 
