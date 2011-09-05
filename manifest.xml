@@ -1,22 +1,9 @@
 <package>
-  <description brief="dummy-brief-desc">
-  dummy-long-desc
-  </description>
-  <author>Jan Fraedrich</author>
-  <license>dummy-license</license>
-  <url>dummy-url</url>
-  <logo>dummy-logo-url</logo>
- <!--
-   To add any dependencies use the depend tag
-  <depend package="dummy-dependency-0" />
-	...
-  <depend package="dummy-dependency-n-1" />
-  <depend package="dummy-dependency-n" />
--->
-<!--DEPEND-ENTRY-->
-<depend package="image_processing/stereo" />
-  <versioncontrol type="dummy-version-control" url="dummy-version-control-url" />
-  <export>
-    <cpp cflags="dummy-cflags" lflags="dummy-lflags" />
-  </export>
+    <description brief="orogen module for stereo processing">
+	Contains orogen module and test scripts for processing stereo data.
+	Both dense and sparse processing is supported.
+    </description>
+    <author>Jan Fraedrich</author>
+    <author>Jakob Schwendner/jakob.schwendner@dfki.de</author>
+    <depend package="image_processing/stereo" />
 </package>
