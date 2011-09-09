@@ -220,8 +220,9 @@ void Task::sparseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage )
     frame_helper::FrameHelper::copyMatToFrame( 
 	    sparse_stereo->getDebugImage(), sparseDebugFrame );
     _sparse_debug.write( sparseDebugFrame );
-    _stereo_features.write( 
-	    sparse_stereo->getStereoFeatures() );
+    StereoFeatureArray &feature_array( sparse_stereo->getStereoFeatures() );
+    feature_array.time = rightFrame.time;
+    _stereo_features.write( feature_array ); 
 }
 
 // void Task::errorHook()
