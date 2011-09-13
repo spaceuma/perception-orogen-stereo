@@ -33,12 +33,15 @@ Task::~Task()
 
 bool Task::configureHook()
 {
-    //initialize dense stereo
+    // initialize dense stereo
     dense_stereo = new DenseStereo();
     sparse_stereo = new StereoFeatures();
 
-    //configure dense stereo
+    // configure dense stereo
     dense_stereo->setLibElasConfiguration(_libElas_conf.get());
+
+    // configure sparse stereo
+    sparse_stereo->setConfiguration( _sparse_config.get() );
 
     if (! TaskBase::configureHook())
         return false;

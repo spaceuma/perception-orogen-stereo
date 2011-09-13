@@ -108,6 +108,10 @@ log_files.each_with_index do |log_file,index|
     libElas_conf.postprocess_only_left = false
     libElas_conf.subsampling           = false
     stereo.libElas_conf = libElas_conf
+
+    stereo.sparse_config do |c|
+	c.knn = 2
+    end
     
     stereo.configure
     stereo.start
