@@ -16,13 +16,60 @@
 
 using namespace stereo;
 
+namespace stereo
+{
+struct Task::SparseDebugImpl
+{
+    base::samples::frame::Frame debugFrame; 
+    cv::Mat stereoFrame[2];
+    stereo::StereoFeatureArray features[2];
+    bool hasPrev;
+    int idx;
+
+    cv::Mat& currentFrame() { return stereoFrame[idx]; }
+    cv::Mat& previousFrame() { return stereoFrame[(idx+1)%2]; }
+
+    stereo::StereoFeatureArray& currentFeatures() { return features[idx]; }
+    stereo::StereoFeatureArray& previousFeatures() { return features[(idx+1)%2]; }
+
+    SparseDebugImpl() : hasPrev(false), idx(0) {}
+
+    void update( Task* task )
+    {
+	stereo::StereoFeatures *stereo = task->sparse_stereo;
+
+	stereo->getDebugImage().copyTo( currentFrame() );
+	currentFeatures() = stereo->getStereoFeatures();
+
+	if( hasPrev )
+	{
+	    stereo->calculateInterFrameCorrespondences( previousFeatures(), currentFeatures(), stereo::FILTER_FUNDAMENTAL );
+	    cv::Mat debugImage = stereo->getInterFrameDebugImage( previousFrame(), previousFeatures(), currentFrame(), currentFeatures());
+
+	    frame_helper::FrameHelper::copyMatToFrame( 
+		    debugImage, debugFrame );
+
+	    task->_sparse_debug.write( debugFrame );
+	}
+
+	currentFrame().copyTo( previousFrame() );
+	previousFeatures() = currentFeatures();
+	hasPrev = true;
+
+	idx = (idx+1)%2;
+    }
+
+};
+}
+
 Task::Task(std::string const& name, TaskCore::TaskState initial_state)
-    : TaskBase(name, initial_state), leftFrameValid(false), rightFrameValid(false)
+    : TaskBase(name, initial_state), leftFrameValid(false), rightFrameValid(false), sparseDebug( new Task::SparseDebugImpl() )
 {
 }
 
 Task::~Task()
 {
+    delete sparseDebug;
 }
 
 //RTT::extras::ReadOnlyPointer<base::samples::frame::Frame> leftFrame, rightFrame;//besser?
@@ -220,9 +267,8 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
 void Task::sparseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage )
 {
     sparse_stereo->processFramePair( leftImage, rightImage );
-    frame_helper::FrameHelper::copyMatToFrame( 
-	    sparse_stereo->getDebugImage(), sparseDebugFrame );
-    _sparse_debug.write( sparseDebugFrame );
+    if( _sparse_debug.connected() )
+	sparseDebug->update( this );
     StereoFeatureArray &feature_array( sparse_stereo->getStereoFeatures() );
     feature_array.time = rightFrame.time;
     _stereo_features.write( feature_array ); 

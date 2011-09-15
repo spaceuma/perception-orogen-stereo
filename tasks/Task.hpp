@@ -30,7 +30,8 @@ namespace stereo {
 	void denseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage );
 	void sparseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage );
 
-	base::samples::frame::Frame sparseDebugFrame;
+	class SparseDebugImpl;
+	SparseDebugImpl *sparseDebug;
 	frame_helper::StereoCalibrationCv calib;
 
     public:
