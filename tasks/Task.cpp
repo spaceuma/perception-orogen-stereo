@@ -43,7 +43,7 @@ struct Task::SparseDebugImpl
 
 	if( hasPrev )
 	{
-	    stereo->calculateInterFrameCorrespondences( previousFeatures(), currentFeatures(), stereo::FILTER_FUNDAMENTAL );
+	    stereo->calculateInterFrameCorrespondences( previousFeatures(), currentFeatures(), stereo::FILTER_ISOMETRY );
 	    cv::Mat debugImage = stereo->getInterFrameDebugImage( previousFrame(), previousFeatures(), currentFrame(), currentFeatures());
 
 	    frame_helper::FrameHelper::copyMatToFrame( 
