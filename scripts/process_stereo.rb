@@ -12,6 +12,7 @@ end
 
 calibration = :wide
 batch_mode = false
+batch_speed = nil 
 
 opt_parse = OptionParser.new do |opt|
     opt.banner = "process_stereo.rb [-m calibration_file|-s calibration_symbol] <log_file|log_file_dir>"
@@ -21,8 +22,9 @@ opt_parse = OptionParser.new do |opt|
     opt.on("-s calibration_symbol", String, "Use build in calibration by the given name") do |name|
 	calibration = name.to_sym
     end
-    opt.on("-b", String, "Use batch mode") do |name|
+    opt.on("-b speed", Float, "Use batch mode at given speed") do |name|
 	batch_mode = true
+	batch_speed = name
     end
 end
 
@@ -111,13 +113,17 @@ log_files.each_with_index do |log_file,index|
 
     stereo.sparse_config do |c|
 	c.knn = 2
+	c.distanceFactor = 1.8 
+	c.isometryFilterMaxSteps = 1000
+	c.isometryFilterThreshold = 0.1
+	c.detectorType = :DETECTOR_SURF
     end
     
     stereo.configure
     stereo.start
 
     if batch_mode 
-	log.run(true, 1)
+	log.run(true, batch_speed)
     else
 	# start the vizkit gui interface
 	widget = Vizkit.default_loader.create_widget("vizkit::Vizkit3DWidget")
