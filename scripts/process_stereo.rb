@@ -59,7 +59,7 @@ log_files.each_with_index do |log_file,index|
 
   Orocos.initialize
   
-  Orocos::Process.spawn 'stereo_test', 'valgrind'=>false, "wait" => 1 do |p|
+  Orocos::Process.run 'stereo_test', 'valgrind'=>false, "wait" => 1 do |p|
 
     stereo = p.task('stereo')
 
