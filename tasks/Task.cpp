@@ -112,44 +112,29 @@ void Task::updateHook()
 	    && leftFrameValid && rightFrameValid 
 	    )
     {
-	//rotate frames by 180 deg and switch them
-	//flip images is faster by one magnitude then rotation
-	//cv::flip(leftFrame.convertToCvMat(),rightCvFrame,-1);
-	//cv::flip(rightFrame.convertToCvMat(),leftCvFrame,-1);
-	
-	//for wide angle lens flip is not needed
-	cv::Mat rightCvFrame = leftFrame.convertToCvMat();
-	cv::Mat leftCvFrame = rightFrame.convertToCvMat();
-
-	// see if we need to initialize the calibration still
+	// see if we need to initialize the calibration
+	// which has to be done when the image size is 
+	//
 	// this can only be done once the image size is known
-	cv::Size imageSize = leftCvFrame.size();
-	if( calib.getImageSize() != imageSize )
-	    initCalibration( imageSize );
-
-	// convert ot greyscale if required
-	if( leftCvFrame.type() != CV_8UC1 )
+	cv::Size currentSize = cv::Size( leftFrame.getWidth(), leftFrame.getHeight() );
+	if( currentSize != imageSize )
 	{
-	    cv::Mat leftGray, rightGray; 
-
-	    cv::cvtColor( leftCvFrame, leftGray, CV_BGR2GRAY );
-	    cv::cvtColor( rightCvFrame, rightGray, CV_BGR2GRAY );
-
-	    leftCvFrame = leftGray;
-	    rightCvFrame = rightGray;
+	    imageSize = currentSize;
+	    initCalibration( imageSize );
 	}
 
-	// if the images are not undistorted and rectified, we do it now
-	if( !_image_rectified.value() )
-	{
-	    cv::Mat leftRectified, rightRectified;
+	// setup buffers for conversion
+	leftFrameTarget.init( leftFrame.getWidth(), leftFrame.getHeight(), 8, base::samples::frame::MODE_GRAYSCALE );
+	rightFrameTarget.init( leftFrame.getWidth(), leftFrame.getHeight(), 8, base::samples::frame::MODE_GRAYSCALE );
 
-	    calib.camLeft.undistortAndRectify( leftCvFrame, leftRectified );
-	    calib.camRight.undistortAndRectify( rightCvFrame, rightRectified );
-
-	    leftCvFrame = leftRectified;
-	    rightCvFrame = rightRectified;
-	}	    
+	// see if we want to undistort and perform the conversion
+	const bool undistort = !_image_rectified.value();
+	leftConv.convert( leftFrame, leftFrameTarget, 0, 0, frame_helper::INTER_LINEAR, undistort );
+	rightConv.convert( rightFrame, rightFrameTarget, 0, 0, frame_helper::INTER_LINEAR, undistort );
+	
+	// get a cv::Mat wrapper around the frames
+	cv::Mat rightCvFrame = rightFrameTarget.convertToCvMat();
+	cv::Mat leftCvFrame = leftFrameTarget.convertToCvMat();
 
 	// perform dense stereo processing if the output ports are connected
 	if( _distance_frame.connected() || _disparity_frame.connected() )
@@ -163,16 +148,15 @@ void Task::updateHook()
 
 void Task::initCalibration( const cv::Size imageSize )
 {
-    // create own cv calibration object
-    calib.setCalibration( _stereoCameraCalibration.value() );
-    calib.setImageSize( imageSize );
-    calib.initCv();
-
     // initialize the the dense stereo lib calibration
     dense_stereo->setStereoCalibration( _stereoCameraCalibration.get(), 
 	    imageSize.width, imageSize.height );
 
     sparse_stereo->setCalibration( _stereoCameraCalibration.get() );
+
+    // setup frame helper for left and right
+    leftConv.setCalibrationParameter( _stereoCameraCalibration.value().camLeft );
+    rightConv.setCalibrationParameter( _stereoCameraCalibration.value().camRight );
 }
 
 void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame )

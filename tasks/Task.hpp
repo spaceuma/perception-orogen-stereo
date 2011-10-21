@@ -7,6 +7,7 @@
 #include <opencv/cv.h>
 #include <base/samples/frame.h>
 #include <frame_helper/CalibrationCv.h>
+#include <frame_helper/FrameHelper.h>
 
 #include "stereo/TaskBase.hpp"
 
@@ -23,8 +24,10 @@ namespace stereo {
 	DenseStereo *dense_stereo;
 	stereo::StereoFeatures *sparse_stereo;
 
-	base::samples::frame::Frame leftFrame, rightFrame;
+	base::samples::frame::Frame leftFrame, rightFrame, leftFrameTarget, rightFrameTarget;
+	frame_helper::FrameHelper leftConv, rightConv;
 	bool leftFrameValid, rightFrameValid;
+	cv::Size imageSize;
 
 	void initCalibration( cv::Size imageSize );
 	void denseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage );
@@ -32,7 +35,6 @@ namespace stereo {
 
 	class SparseDebugImpl;
 	SparseDebugImpl *sparseDebug;
-	frame_helper::StereoCalibrationCv calib;
 
     public:
         Task(std::string const& name = "stereo::Task", TaskCore::TaskState initial_state = Stopped);
