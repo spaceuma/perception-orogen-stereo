@@ -12,6 +12,7 @@
 #include <stereo/dense_stereo_types.h>
 #include <base/time.h>
 #include <frame_helper/Calibration.h>
+#include <frame_helper/CalibrationCv.h>
 #include <frame_helper/FrameHelper.h>
 
 using namespace stereo;
@@ -155,8 +156,13 @@ void Task::initCalibration( const cv::Size imageSize )
     sparse_stereo->setCalibration( _stereoCameraCalibration.get() );
 
     // setup frame helper for left and right
-    leftConv.setCalibrationParameter( _stereoCameraCalibration.value().camLeft );
-    rightConv.setCalibrationParameter( _stereoCameraCalibration.value().camRight );
+    frame_helper::StereoCalibrationCv stereoCalib;
+    stereoCalib.setCalibration( _stereoCameraCalibration.get() );
+    stereoCalib.setImageSize( imageSize );
+    stereoCalib.initCv();
+
+    leftConv.setCalibrationParameter( stereoCalib.camLeft );
+    rightConv.setCalibrationParameter( stereoCalib.camRight );
 }
 
 void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame )
