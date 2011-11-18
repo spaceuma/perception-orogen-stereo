@@ -23,6 +23,8 @@ task_context "Task" do
 	doc "calibration parameters for stereo camera setup"
    property("libElas_conf", "/stereo/libElasConfiguration").
 	doc "configuration values for libElas"
+   property("gaussian_kernel", "/int", 0).
+	doc "gaussian kernel for dense stereo pre-processing."
    property("sparse_config", "/stereo/FeatureConfiguration").
 	doc "configuration for sparse features."
 

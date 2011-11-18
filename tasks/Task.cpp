@@ -87,6 +87,7 @@ bool Task::configureHook()
 
     // configure dense stereo
     dense_stereo->setLibElasConfiguration(_libElas_conf.get());
+    dense_stereo->setGaussianKernel( _gaussian_kernel.get() );
 
     // configure sparse stereo
     sparse_stereo->setConfiguration( _sparse_config.get() );
