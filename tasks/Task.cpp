@@ -138,6 +138,13 @@ void Task::updateHook()
 	cv::Mat rightCvFrame = rightFrameTarget.convertToCvMat();
 	cv::Mat leftCvFrame = leftFrameTarget.convertToCvMat();
 
+	/**
+	static int i = 0;
+	cv::imwrite( "/tmp/left_" + boost::lexical_cast<string>(i) + ".png", leftCvFrame ); 
+	cv::imwrite( "/tmp/right_" + boost::lexical_cast<string>(i) + ".png", rightCvFrame ); 
+	i++;
+	**/
+
 	// perform dense stereo processing if the output ports are connected
 	if( _distance_frame.connected() || _disparity_frame.connected() )
 	    denseStereo( leftCvFrame, rightCvFrame );
@@ -170,11 +177,11 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
 {
     // create the output distanceImage and register a cv::Mat on the same
     // data buffer
-    base::samples::DistanceImage distanceFrame;
+    base::samples::DistanceImage distanceFrame, rightDistanceFrame;
     distanceFrame.time = leftFrame.time;
     cv::Mat 
 	leftCvResult = dense_stereo->createLeftDistanceImage( distanceFrame ),
-	rightCvResult;
+	rightCvResult = dense_stereo->createRightDistanceImage( rightDistanceFrame );
 
     // calculate the distance images
     dense_stereo->processFramePair(leftCvFrame, rightCvFrame, 
@@ -198,6 +205,10 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
 
     // calculate distance images from disparity images
     dense_stereo->getDistanceImages( leftCvResult, rightCvResult );
+    
+    // if there is a sparse processor, it might need the dense images
+    if( sparse_stereo )
+	sparse_stereo->setDistanceImages( distanceFrame, rightDistanceFrame );
 
     if( _distance_frame.connected() )
     {
