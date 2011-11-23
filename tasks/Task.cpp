@@ -172,7 +172,7 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
     // data buffer
     base::samples::DistanceImage distanceFrame;
     distanceFrame.time = leftFrame.time;
-    cv::Mat 
+    cv::Mat
 	leftCvResult = dense_stereo->createLeftDistanceImage( distanceFrame ),
 	rightCvResult;
 
@@ -217,7 +217,7 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
             lut_initialized = true;
         }
 
-        for( size_t i=0; i<size; ++i ) {
+        for( size_t i=0; i<distanceFrame.data.size(); ++i ) {
             if(distanceFrame.data[i] > 0){
             *(data++) = red[(uint8_t)(distanceFrame.data[i] * scaling_factor)];
             *(data++) = green[(uint8_t)(distanceFrame.data[i] * scaling_factor)];
