@@ -28,6 +28,8 @@ task_context "Task" do
    property("sparse_config", "/stereo/FeatureConfiguration").
 	doc "configuration for sparse features."
 
+   input_port "left_distance_image", "/base/samples/DistanceImage"
+   input_port "right_distance_image", "/base/samples/DistanceImage"
    input_port "left_frame", "/base/samples/frame/Frame"
    input_port "right_frame", "/base/samples/frame/Frame"
    property( "image_rectified", "bool", false ).

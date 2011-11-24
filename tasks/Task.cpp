@@ -108,10 +108,14 @@ void Task::updateHook()
 
     while( _left_frame.read(leftFrame) == RTT::NewData ) leftFrameValid = true;
     while( _right_frame.read(rightFrame) == RTT::NewData ) rightFrameValid = true;
+    while( _left_distance_image.read(ldistImage) == RTT::NewData );
+    while( _right_distance_image.read(rdistImage) == RTT::NewData );
     
     // check conditions which must be met so we can/should calculate the distance image
     if( ( std::abs((leftFrame.time - rightFrame.time).toMilliseconds()) < 5) 
 	    && leftFrameValid && rightFrameValid 
+	    && ldistImage.time == leftFrame.time
+	    && rdistImage.time == leftFrame.time
 	    )
     {
 	// see if we need to initialize the calibration
@@ -205,10 +209,28 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
 
     // calculate distance images from disparity images
     dense_stereo->getDistanceImages( leftCvResult, rightCvResult );
+
+    // we may have better distance information from the supplied distance
+    // images... so if available, we augment it.
+    if( ldistImage.time == leftFrame.time )
+    {
+	std::cout << "merging distance images" << std::endl;
+	assert( ldistImage.data.size() == distanceFrame.data.size() );
+	for( size_t i = 0; i < ldistImage.data.size(); i ++ )
+	{
+	    double val;
+	    if( boost::math::isnormal(val = ldistImage.data[i] ) )
+		distanceFrame.data[i] = val;
+	    if( boost::math::isnormal(val = rdistImage.data[i] ) )
+		rightDistanceFrame.data[i] = val;
+	}
+    }
+    ldistImage = distanceFrame;
+    rdistImage = rightDistanceFrame;
     
     // if there is a sparse processor, it might need the dense images
     if( sparse_stereo )
-	sparse_stereo->setDistanceImages( distanceFrame, rightDistanceFrame );
+	sparse_stereo->setDistanceImages( &ldistImage, &rdistImage );
 
     if( _distance_frame.connected() )
     {

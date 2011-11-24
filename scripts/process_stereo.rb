@@ -63,8 +63,14 @@ log_files.each_with_index do |log_file,index|
 
     stereo = p.task('stereo')
 
-    log.camera_left.frame.connect_to stereo.left_frame #, :type => :buffer, :size => 1
-    log.camera_right.frame.connect_to stereo.right_frame #,:type => :buffer, :size => 1
+    #log.camera_left.frame.connect_to stereo.left_frame #, :type => :buffer, :size => 1
+    #log.camera_right.frame.connect_to stereo.right_frame #,:type => :buffer, :size => 1
+    #log.camera_right.frame.connect_to stereo.left_frame #, :type => :buffer, :size => 1
+    #log.camera_left.frame.connect_to stereo.right_frame #,:type => :buffer, :size => 1
+    log.tilt_scan.left_frame.connect_to stereo.left_frame #, :type => :buffer, :size => 1
+    log.tilt_scan.right_frame.connect_to stereo.right_frame #,:type => :buffer, :size => 1
+    log.tilt_scan.left_distance_frame.connect_to stereo.left_distance_image
+    log.tilt_scan.right_distance_frame.connect_to stereo.right_distance_image
     
     # only generate the output log in batch mode
     if batch_mode 
@@ -137,7 +143,8 @@ log_files.each_with_index do |log_file,index|
 	end
 
 	Vizkit.display stereo.disparity_frame
-	Vizkit.display log.camera_left.frame
+	#Vizkit.display log.camera_left.frame
+	Vizkit.display log.tilt_scan.left_frame
 	Vizkit.display stereo.sparse_debug
 	Vizkit.control log
 

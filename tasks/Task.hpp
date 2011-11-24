@@ -29,6 +29,8 @@ namespace stereo {
 	bool leftFrameValid, rightFrameValid;
 	cv::Size imageSize;
 
+	base::samples::DistanceImage ldistImage, rdistImage;
+
 	void initCalibration( cv::Size imageSize );
 	void denseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage );
 	void sparseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage );
