@@ -125,31 +125,27 @@ void Task::updateHook()
 	    initCalibration( imageSize );
 	}
 
+	// create tmp frames in case we need to flip
+	base::samples::frame::Frame ltmp( leftFrame ), rtmp( rightFrame );
+	// flip input images
+	if( _image_rotated.value() )
+	{
+	    leftConv.rotateBy180Degrees( leftFrame, ltmp );
+	    rightConv.rotateBy180Degrees( rightFrame, rtmp );
+	}
+
 	// setup buffers for conversion
 	leftFrameTarget.init( leftFrame.getWidth(), leftFrame.getHeight(), 8, base::samples::frame::MODE_GRAYSCALE );
 	rightFrameTarget.init( leftFrame.getWidth(), leftFrame.getHeight(), 8, base::samples::frame::MODE_GRAYSCALE );
 
 	// see if we want to undistort and perform the conversion
 	const bool undistort = !_image_rectified.value();
-	leftConv.convert( leftFrame, leftFrameTarget, 0, 0, frame_helper::INTER_LINEAR, undistort );
-	rightConv.convert( rightFrame, rightFrameTarget, 0, 0, frame_helper::INTER_LINEAR, undistort );
+	leftConv.convert( ltmp, leftFrameTarget, 0, 0, frame_helper::INTER_LINEAR, undistort );
+	rightConv.convert( rtmp, rightFrameTarget, 0, 0, frame_helper::INTER_LINEAR, undistort );
 	
 	// get a cv::Mat wrapper around the frames
 	cv::Mat rightCvFrame = rightFrameTarget.convertToCvMat();
 	cv::Mat leftCvFrame = leftFrameTarget.convertToCvMat();
-
-	std::cout << "rotate input image" << std::endl;
-	// flip input images
-	if( _image_rotated.value() )
-	{
-	    // this should probably also be possible in place,
-	    // but no time for it now
-	    cv::Mat ltmp, rtmp;
-	    cv::flip( leftCvFrame, ltmp, -1 );
-	    leftCvFrame = ltmp;
-	    cv::flip( rightCvFrame, rtmp, -1 );
-	    rightCvFrame = rtmp;
-	}
 
 	/**
 	static int i = 0;
