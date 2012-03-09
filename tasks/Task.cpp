@@ -138,6 +138,19 @@ void Task::updateHook()
 	cv::Mat rightCvFrame = rightFrameTarget.convertToCvMat();
 	cv::Mat leftCvFrame = leftFrameTarget.convertToCvMat();
 
+	std::cout << "rotate input image" << std::endl;
+	// flip input images
+	if( _image_rotated.value() )
+	{
+	    // this should probably also be possible in place,
+	    // but no time for it now
+	    cv::Mat ltmp, rtmp;
+	    cv::flip( leftCvFrame, ltmp, -1 );
+	    leftCvFrame = ltmp;
+	    cv::flip( rightCvFrame, rtmp, -1 );
+	    rightCvFrame = rtmp;
+	}
+
 	/**
 	static int i = 0;
 	cv::imwrite( "/tmp/left_" + boost::lexical_cast<string>(i) + ".png", leftCvFrame ); 
