@@ -253,7 +253,7 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
     
     // if there is a sparse processor, it might need the dense images
     if( sparse_stereo )
-	sparse_stereo->setDistanceImages( &distanceFrame, &rightDistanceFrame );
+	sparse_stereo->setDistanceImages( distanceFrame, rightDistanceFrame );
 
     if( _distance_frame.connected() )
     {
