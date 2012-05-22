@@ -1,6 +1,6 @@
 #! /usr/bin/env ruby
 
-require 'config'
+require './config'
 require 'vizkit'
 require 'optparse'
 include Orocos

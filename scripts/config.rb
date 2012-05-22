@@ -8,6 +8,7 @@ class MatlabCalibration
     def read( file_name )
 	File.open( file_name, 'r' ) do |f|
 	    while (line = f.gets)
+		line.force_encoding "iso8859-1"
 		if line =~ /(\w+) = \[([^\]]+)\]/
 		    @params[$1] = $2.split(" ").map! &:to_f
 		end	    
