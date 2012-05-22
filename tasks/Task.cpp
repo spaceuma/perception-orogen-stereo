@@ -106,11 +106,12 @@ void Task::updateHook()
 {
     TaskBase::updateHook();
 
+    RTT::extras::ReadOnlyPointer<base::samples::frame::Frame> leftFrame, rightFrame;
     while( _left_frame.read(leftFrame) == RTT::NewData ) leftFrameValid = true;
     while( _right_frame.read(rightFrame) == RTT::NewData ) rightFrameValid = true;
     
     // check conditions which must be met so we can/should calculate the distance image
-    if( ( std::abs((leftFrame.time - rightFrame.time).toMilliseconds()) < 5) 
+    if( ( std::abs((leftFrame->time - rightFrame->time).toMilliseconds()) < 5) 
 	    && leftFrameValid && rightFrameValid 
 	    )
     {
@@ -118,7 +119,7 @@ void Task::updateHook()
 	// which has to be done when the image size is 
 	//
 	// this can only be done once the image size is known
-	cv::Size currentSize = cv::Size( leftFrame.getWidth(), leftFrame.getHeight() );
+	cv::Size currentSize = cv::Size( leftFrame->getWidth(), leftFrame->getHeight() );
 	if( currentSize != imageSize )
 	{
 	    imageSize = currentSize;
@@ -126,17 +127,20 @@ void Task::updateHook()
 	}
 
 	// create tmp frames in case we need to flip
-	base::samples::frame::Frame ltmp( leftFrame ), rtmp( rightFrame );
+	base::samples::frame::Frame ltmp, rtmp;
 	// flip input images
 	if( _image_rotated.value() )
 	{
-	    leftConv.rotateBy180Degrees( leftFrame, ltmp );
-	    rightConv.rotateBy180Degrees( rightFrame, rtmp );
+	    leftConv.rotateBy180Degrees( *leftFrame, ltmp );
+	    rightConv.rotateBy180Degrees( *rightFrame, rtmp );
+	} else {
+	    ltmp.init(*leftFrame, true);
+	    rtmp.init(*rightFrame, true);
 	}
 
 	// setup buffers for conversion
-	leftFrameTarget.init( leftFrame.getWidth(), leftFrame.getHeight(), 8, base::samples::frame::MODE_GRAYSCALE );
-	rightFrameTarget.init( leftFrame.getWidth(), leftFrame.getHeight(), 8, base::samples::frame::MODE_GRAYSCALE );
+	leftFrameTarget.init( leftFrame->getWidth(), leftFrame->getHeight(), 8, base::samples::frame::MODE_GRAYSCALE );
+	rightFrameTarget.init( leftFrame->getWidth(), leftFrame->getHeight(), 8, base::samples::frame::MODE_GRAYSCALE );
 
 	// see if we want to undistort and perform the conversion
 	const bool undistort = !_image_rectified.value();
@@ -187,7 +191,7 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
     // create the output distanceImage and register a cv::Mat on the same
     // data buffer
     base::samples::DistanceImage distanceFrame, rightDistanceFrame;
-    distanceFrame.time = leftFrame.time;
+    distanceFrame.time = leftFrameTarget.time;
     cv::Mat
 	leftCvResult = dense_stereo->createLeftDistanceImage( distanceFrame ),
 	rightCvResult = dense_stereo->createRightDistanceImage( rightDistanceFrame );
@@ -202,7 +206,7 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
 	base::samples::frame::Frame disparity_image( 
 		distanceFrame.width, distanceFrame.height, 8, 
 		base::samples::frame::MODE_RGB );
-	disparity_image.time = leftFrame.time;
+	disparity_image.time = leftFrameTarget.time;
 	const float scaling_factor = 255.0f / *std::max_element( distanceFrame.data.begin(), distanceFrame.data.end() );
 	uint8_t *data = disparity_image.getImagePtr();
 
@@ -268,7 +272,7 @@ void Task::sparseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage )
     if( _sparse_debug.connected() )
 	sparseDebug->update( this );
     StereoFeatureArray &feature_array( sparse_stereo->getStereoFeatures() );
-    feature_array.time = rightFrame.time;
+    feature_array.time = rightFrameTarget.time;
     _stereo_features.write( feature_array ); 
 }
 

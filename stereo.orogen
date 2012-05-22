@@ -28,8 +28,8 @@ task_context "Task" do
    property("sparse_config", "/stereo/FeatureConfiguration").
 	doc "configuration for sparse features."
 
-   input_port "left_frame", "/base/samples/frame/Frame"
-   input_port "right_frame", "/base/samples/frame/Frame"
+   input_port "left_frame", ro_ptr('base::samples::frame::Frame')
+   input_port "right_frame", ro_ptr('base::samples::frame::Frame')
    property( "image_rectified", "bool", false ).
 	doc( "if set to true, the input images are assumed to already be rectified." )
    property( "image_rotated", "bool", false ).
