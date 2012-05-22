@@ -111,9 +111,7 @@ void Task::updateHook()
     while( _right_frame.read(rightFrame) == RTT::NewData ) rightFrameValid = true;
     
     // check conditions which must be met so we can/should calculate the distance image
-    if( ( std::abs((leftFrame->time - rightFrame->time).toMilliseconds()) < 5) 
-	    && leftFrameValid && rightFrameValid 
-	    )
+    if( leftFrameValid && rightFrameValid && (std::abs((leftFrame->time - rightFrame->time).toMilliseconds()) < 5) )
     {
 	// see if we need to initialize the calibration
 	// which has to be done when the image size is 
