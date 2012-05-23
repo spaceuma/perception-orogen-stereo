@@ -63,10 +63,14 @@ struct Task::SparseDebugImpl
 };
 }
 
-Task::Task(std::string const& name, TaskCore::TaskState initial_state)
-    : TaskBase(name, initial_state), leftFrameValid(false), rightFrameValid(false), sparseDebug( new Task::SparseDebugImpl() )
+Task::Task(std::string const& name): TaskBase(name), leftFrameValid(false), rightFrameValid(false), sparseDebug( new Task::SparseDebugImpl() )
 {
 }
+
+Task::Task(std::string const& name, RTT::ExecutionEngine* engine): TaskBase(name, engine), leftFrameValid(false), rightFrameValid(false), sparseDebug( new Task::SparseDebugImpl() )
+{
+}
+
 
 Task::~Task()
 {
@@ -91,6 +95,11 @@ bool Task::configureHook()
 
     // configure sparse stereo
     sparse_stereo->setConfiguration( _sparse_config.get() );
+
+    calibration = _stereoCameraCalibration.get();
+
+    leftFrameValid = false;
+    rightFrameValid = false;
 
     if (! TaskBase::configureHook())
         return false;
@@ -169,14 +178,14 @@ void Task::updateHook()
 void Task::initCalibration( const cv::Size imageSize )
 {
     // initialize the the dense stereo lib calibration
-    dense_stereo->setStereoCalibration( _stereoCameraCalibration.get(), 
+    dense_stereo->setStereoCalibration( calibration, 
 	    imageSize.width, imageSize.height );
 
-    sparse_stereo->setCalibration( _stereoCameraCalibration.get() );
+    sparse_stereo->setCalibration(calibration);
 
     // setup frame helper for left and right
     frame_helper::StereoCalibrationCv stereoCalib;
-    stereoCalib.setCalibration( _stereoCameraCalibration.get() );
+    stereoCalib.setCalibration(calibration);
     stereoCalib.setImageSize( imageSize );
     stereoCalib.initCv();
 

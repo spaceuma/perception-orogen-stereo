@@ -28,6 +28,7 @@ namespace stereo {
 	frame_helper::FrameHelper leftConv, rightConv;
 	bool leftFrameValid, rightFrameValid;
 	cv::Size imageSize;
+	frame_helper::StereoCalibration calibration;
 
 	void initCalibration( cv::Size imageSize );
 	void denseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage );
@@ -37,7 +38,8 @@ namespace stereo {
 	SparseDebugImpl *sparseDebug;
 
     public:
-        Task(std::string const& name = "stereo::Task", TaskCore::TaskState initial_state = Stopped);
+        Task(std::string const& name = "stereo::Task");
+        Task(std::string const& name, RTT::ExecutionEngine* engine);
 
 	~Task();
 
