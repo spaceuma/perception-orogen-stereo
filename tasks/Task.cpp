@@ -14,6 +14,7 @@
 #include <frame_helper/Calibration.h>
 #include <frame_helper/CalibrationCv.h>
 #include <frame_helper/FrameHelper.h>
+#include <stdexcept>
 
 using namespace stereo;
 
@@ -211,9 +212,15 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
 	leftCvResult = dense_stereo->createLeftDistanceImage( distanceFrame ),
 	rightCvResult = dense_stereo->createRightDistanceImage( rightDistanceFrame );
 
+    try {
     // calculate the distance images
     dense_stereo->processFramePair(leftCvFrame, rightCvFrame, 
 	    leftCvResult, rightCvResult, true);
+    } catch (std::runtime_error &e)
+    {
+	std::cout << e.what() << std::endl;
+	return;
+    } 
 
     // create a frame to display the disparity image (mainly for debug)
     if( _disparity_frame.connected() )
