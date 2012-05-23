@@ -6,4 +6,5 @@
     <author>Jan Fraedrich</author>
     <author>Jakob Schwendner/jakob.schwendner@dfki.de</author>
     <depend package="image_processing/stereo" />
+    <tags>stable</tags>
 </package>
