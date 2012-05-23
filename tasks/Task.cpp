@@ -63,18 +63,17 @@ struct Task::SparseDebugImpl
 };
 }
 
-Task::Task(std::string const& name): TaskBase(name), leftFrameValid(false), rightFrameValid(false), sparseDebug( new Task::SparseDebugImpl() )
+Task::Task(std::string const& name): TaskBase(name), dense_stereo(0), sparse_stereo(0), sparseDebug( new Task::SparseDebugImpl() )
 {
 }
 
-Task::Task(std::string const& name, RTT::ExecutionEngine* engine): TaskBase(name, engine), leftFrameValid(false), rightFrameValid(false), sparseDebug( new Task::SparseDebugImpl() )
+Task::Task(std::string const& name, RTT::ExecutionEngine* engine): TaskBase(name, engine), dense_stereo(0), sparse_stereo(0), sparseDebug( new Task::SparseDebugImpl() )
 {
 }
 
 
 Task::~Task()
 {
-    delete sparseDebug;
 }
 
 //RTT::extras::ReadOnlyPointer<base::samples::frame::Frame> leftFrame, rightFrame;//besser?
@@ -86,31 +85,40 @@ Task::~Task()
 bool Task::configureHook()
 {
     // initialize dense stereo
+    if(dense_stereo)
+	delete dense_stereo;
+	
     dense_stereo = new DenseStereo();
-    sparse_stereo = new StereoFeatures();
-
     // configure dense stereo
     dense_stereo->setLibElasConfiguration(_libElas_conf.get());
     dense_stereo->setGaussianKernel( _gaussian_kernel.get() );
+
+    if(sparse_stereo)
+	delete sparse_stereo;
+       
+    sparse_stereo = new StereoFeatures();
 
     // configure sparse stereo
     sparse_stereo->setConfiguration( _sparse_config.get() );
 
     calibration = _stereoCameraCalibration.get();
 
-    leftFrameValid = false;
-    rightFrameValid = false;
-
     if (! TaskBase::configureHook())
         return false;
     return true;
 }
-// bool Task::startHook()
-// {
-//     if (! TaskBase::startHook())
-//         return false;    
-//     return true;
-// }
+
+bool Task::startHook()
+{
+    if (! TaskBase::startHook())
+        return false;    
+    
+    leftFrameValid = false;
+    rightFrameValid = false;
+
+    return true;
+}
+
 void Task::updateHook()
 {
     TaskBase::updateHook();
@@ -287,15 +295,18 @@ void Task::sparseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage )
 // {
 //     TaskBase::errorHook();
 // }
-// void Task::stopHook()
-// {
-//     TaskBase::stopHook();
-// }
+void Task::stopHook()
+{
+    delete dense_stereo;
+    delete sparse_stereo;
+
+    dense_stereo = 0;
+    sparse_stereo = 0;
+    
+    TaskBase::stopHook();
+}
 void Task::cleanupHook()
 {
     TaskBase::cleanupHook();
-
-    delete dense_stereo;
-    delete sparse_stereo;
 }
 
