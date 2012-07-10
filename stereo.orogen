@@ -36,6 +36,8 @@ task_context "Task" do
 	doc( "if set to true, the input images are assumed to already be rectified." )
    property( "image_rotated", "bool", false ).
 	doc( "if set to true, the input images are assumed to be rotated by 180 degrees." )
+   property( "image_scaling_factor", "double", 1.0).
+   	doc( "down- or upscale input images by this factor." )
 
    output_port("sparse_debug", "/base/samples/frame/Frame").
         doc "debug frame for the sparse processing library."

@@ -28,12 +28,13 @@ namespace stereo {
 	frame_helper::FrameHelper leftConv, rightConv;
 	bool leftFrameValid, rightFrameValid;
 	cv::Size imageSize;
+      double imageScalingFactor;
 	frame_helper::StereoCalibration calibration;
 
 	void initCalibration( cv::Size imageSize );
 	void denseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage );
 	void sparseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage );
-
+      
 	class SparseDebugImpl;
 	SparseDebugImpl *sparseDebug;
 

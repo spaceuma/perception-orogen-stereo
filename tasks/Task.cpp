@@ -104,6 +104,8 @@ bool Task::configureHook()
 
     calibration = _stereoCameraCalibration.get();
 
+    imageScalingFactor = _image_scaling_factor.get();
+
     if (! TaskBase::configureHook())
         return false;
     return true;
@@ -135,7 +137,7 @@ void Task::updateHook()
 	// which has to be done when the image size is 
 	//
 	// this can only be done once the image size is known
-	cv::Size currentSize = cv::Size( leftFrame->getWidth(), leftFrame->getHeight() );
+	cv::Size currentSize = cv::Size( leftFrame->getWidth() * imageScalingFactor, leftFrame->getHeight() * imageScalingFactor );
 	if( currentSize != imageSize )
 	{
 	    imageSize = currentSize;
@@ -155,8 +157,8 @@ void Task::updateHook()
 	}
 
 	// setup buffers for conversion
-	leftFrameTarget.init( leftFrame->getWidth(), leftFrame->getHeight(), 8, base::samples::frame::MODE_GRAYSCALE );
-	rightFrameTarget.init( leftFrame->getWidth(), leftFrame->getHeight(), 8, base::samples::frame::MODE_GRAYSCALE );
+	leftFrameTarget.init( leftFrame->getWidth() * imageScalingFactor, leftFrame->getHeight() * imageScalingFactor, 8, base::samples::frame::MODE_GRAYSCALE );
+	rightFrameTarget.init( leftFrame->getWidth() * imageScalingFactor, leftFrame->getHeight() * imageScalingFactor, 8, base::samples::frame::MODE_GRAYSCALE );
 
 	// see if we want to undistort and perform the conversion
 	const bool undistort = !_image_rectified.value();
