@@ -166,8 +166,8 @@ void Task::updateHook()
 	rightConv.convert( rtmp, rightFrameTarget, 0, 0, frame_helper::INTER_LINEAR, undistort );
 	
 	// get a cv::Mat wrapper around the frames
-	cv::Mat rightCvFrame = rightFrameTarget.convertToCvMat();
-	cv::Mat leftCvFrame = leftFrameTarget.convertToCvMat();
+	cv::Mat rightCvFrame = frame_helper::FrameHelper::convertToCvMat(rightFrameTarget);
+	cv::Mat leftCvFrame = frame_helper::FrameHelper::convertToCvMat(leftFrameTarget);
 
 	/**
 	static int i = 0;
