@@ -47,10 +47,10 @@ class StereoWidget < Qt::Widget
 	puts "save pair with index #{@index}"
 
 	path = File.join( ARGV[1], "left_#{@index}.png" )
-	Vizkit.default_loader.ImageView.save_frame(@left, path)
+	Vizkit.default_loader.ImageViewOld.save_frame(@left, path)
 
 	path = File.join( ARGV[1], "right_#{@index}.png" )
-	Vizkit.default_loader.ImageView.save_frame(@right, path)
+	Vizkit.default_loader.ImageViewOld.save_frame(@right, path)
 
 	@index += 1
 	@count.text = @index.to_s
