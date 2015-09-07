@@ -14,7 +14,25 @@
 #include <frame_helper/Calibration.h>
 #include <frame_helper/CalibrationCv.h>
 #include <frame_helper/FrameHelper.h>
+#include <boost/thread/thread.hpp>
+#include <pcl/common/common_headers.h>
+#include <pcl/point_cloud.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/io/ply_io.h>
+#include <pcl/point_types.h>
+#include <pcl/filters/passthrough.h>
+//#include <pcl/visualization/pcl_visualizer.h>
+//#include "pcl/visualization/cloud_viewer.h"
+
+
 #include <stdexcept>
+
+
+//typedef pcl::PointXYZRGBA PointT;
+//typedef pcl::PointCloud<PointT> PointCloudT;
+typedef pcl::PointXYZRGB PointType;
+typedef pcl::PointCloud<PointType> CloudType;
+CloudType::Ptr cloud (new CloudType);
 
 using namespace stereo;
 
@@ -27,7 +45,7 @@ struct Task::SparseDebugImpl
     stereo::StereoFeatureArray features[2];
     bool hasPrev;
     int idx;
-
+	
     cv::Mat& currentFrame() { return stereoFrame[idx]; }
     cv::Mat& previousFrame() { return stereoFrame[(idx+1)%2]; }
 
@@ -85,6 +103,11 @@ Task::~Task()
 
 bool Task::configureHook()
 {
+    //PointCloudT::Ptr cloud (new PointCloudT);
+
+	// Visualization
+	//pcl::visualization::PCLVisualizer viewer ("PCL visualizer");
+    
     // initialize dense stereo
     if(dense_stereo)
 	delete dense_stereo;
@@ -169,20 +192,18 @@ void Task::updateHook()
 	cv::Mat rightCvFrame = frame_helper::FrameHelper::convertToCvMat(rightFrameTarget);
 	cv::Mat leftCvFrame = frame_helper::FrameHelper::convertToCvMat(leftFrameTarget);
 
-	/**
-	static int i = 0;
-	cv::imwrite( "/tmp/left_" + boost::lexical_cast<string>(i) + ".png", leftCvFrame ); 
-	cv::imwrite( "/tmp/right_" + boost::lexical_cast<string>(i) + ".png", rightCvFrame ); 
-	i++;
-	**/
+//	static int i = 0;
+//	cv::imwrite( "/tmp/left_" + boost::lexical_cast<std::string>(i) + ".png", leftCvFrame ); 
+//	cv::imwrite( "/tmp/right_" + boost::lexical_cast<std::string>(i) + ".png", rightCvFrame ); 
+//	i++;
 
 	// perform dense stereo processing if the output ports are connected
 	if( _distance_frame.connected() || _disparity_frame.connected() )
 	    denseStereo( leftCvFrame, rightCvFrame );
 
 	// same for sparse
-	if( _sparse_debug.connected() || _stereo_features.connected() )
-	    sparseStereo( leftCvFrame, rightCvFrame );
+	//if( _sparse_debug.connected() || _stereo_features.connected() )
+	//    sparseStereo( leftCvFrame, rightCvFrame );
     }
 }
 
@@ -220,7 +241,6 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
 	    leftCvResult, rightCvResult, true);
     } catch (std::runtime_error &e)
     {
-	std::cout << e.what() << std::endl;
 	return;
     } 
 
@@ -260,6 +280,7 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
             }
             lut_initialized = true;
         }
+        
 
         for( size_t i=0; i<distanceFrame.data.size(); ++i ) {
             if(distanceFrame.data[i] > 0){
@@ -272,8 +293,49 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
             *(data++) = 0;
             }
         }
+        
+        
+        
+        
+        
+        /*
+        cloud->width = distanceFrame.width;
+	    cloud->height = distanceFrame.height;
+    	cloud->is_dense = false;
+    	cloud->points.resize (cloud->width * cloud->height);
+
+        for( size_t i=0; i<distanceFrame.data.size(); ++i ) {
+            if(distanceFrame.data[i] > 0){
+   		    cloud->points[i].x = 1024 * rand () / (RAND_MAX + 1.0f);
+	    	cloud->points[i].y = 1024 * rand () / (RAND_MAX + 1.0f);
+		    cloud->points[i].z = 1024 * rand () / (RAND_MAX + 1.0f);
+    		// Method #1 - Random color for each point
+    		cloud->points[i].r = 255 *(1024 * rand () / (RAND_MAX + 1.0f));
+    		cloud->points[i].g = 255 *(1024 * rand () / (RAND_MAX + 1.0f));
+    		cloud->points[i].b = 255 *(1024 * rand () / (RAND_MAX + 1.0f));
+                
+            *(data++) = red[(uint8_t)(distanceFrame.data[i] * scaling_factor)];
+            *(data++) = green[(uint8_t)(distanceFrame.data[i] * scaling_factor)];
+            *(data++) = blue[(uint8_t)(distanceFrame.data[i] * scaling_factor)];
+            } else { // if depth information is not valid --> black pixel
+            cloud->points[i].x = 0;
+	    	cloud->points[i].y = 0;
+		    cloud->points[i].z = 0;
+    		// Method #1 - Random color for each point
+    		cloud->points[i].r = 0;
+    		cloud->points[i].g = 0;
+    		cloud->points[i].b = 0;
+            }
+        }
+	    viewer.addPointCloud (cloud, "cloud"); // Method #1
+        */
 
         _disparity_frame.write( disparity_image );
+        static int j = 0;
+	    //cv::imwrite( "/tmp/disparity_" + boost::lexical_cast<std::string>(j) + ".png", frame_helper::FrameHelper::convertToCvMat(disparity_image));
+//        cv::FileStorage file("/tmp/disparity_" + boost::lexical_cast<std::string>(j) + ".yml", cv::FileStorage::WRITE);
+//        file << "Disparity" << leftCvResult;
+//        j++;
     }
 
     // calculate distance images from disparity images
