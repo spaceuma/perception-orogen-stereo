@@ -178,6 +178,18 @@ void Task::updateHook()
 	    ltmp.init(*leftFrame, true);
 	    rtmp.init(*rightFrame, true);
 	}
+        
+	// Get the images and force the timestamp
+	::base::samples::frame::Frame *frame_left_ptr_sync = leftFrame.write_access();
+        ::base::samples::frame::Frame *frame_right_ptr_sync = rightFrame.write_access();
+        frame_left_ptr_sync->received_time = base::Time::now();
+        frame_right_ptr_sync->received_time = frame_left_ptr_sync->received_time;
+
+        // Write the images to the synced output ports
+        frame_left.reset(frame_left_ptr_sync);
+        _left_frame_sync.write(frame_left);
+        frame_right.reset(frame_right_ptr_sync);
+        _right_frame_sync.write(frame_right);
 
 	// setup buffers for conversion
 	leftFrameTarget.init( leftFrame->getWidth() * imageScalingFactor, leftFrame->getHeight() * imageScalingFactor, 8, base::samples::frame::MODE_GRAYSCALE );
