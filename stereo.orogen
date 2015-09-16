@@ -1,7 +1,6 @@
 name "stereo"
 # Optionally declare the version number
 # version "0.1"
-
 # If new data types need to be defined, they have to be put in a separate C++
 # header, and this header will be loaded here
 # import_types_from "denseStereoTypes.hpp"
