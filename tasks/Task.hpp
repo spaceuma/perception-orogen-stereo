@@ -38,6 +38,10 @@ namespace stereo {
 	class SparseDebugImpl;
 	SparseDebugImpl *sparseDebug;
 
+	//Dumy pointers needed to fake the timestmaps
+        RTT::extras::ReadOnlyPointer<base::samples::frame::Frame> frame_left;   
+        RTT::extras::ReadOnlyPointer<base::samples::frame::Frame> frame_right;  
+
     public:
         Task(std::string const& name = "stereo::Task");
         Task(std::string const& name, RTT::ExecutionEngine* engine);
