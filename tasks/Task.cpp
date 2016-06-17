@@ -10,7 +10,7 @@
 #include <stereo/densestereo.h>
 #include <stereo/sparse_stereo.hpp>
 #include <stereo/dense_stereo_types.h>
-#include <base/time.h>
+#include <base/Time.hpp>
 #include <frame_helper/Calibration.h>
 #include <frame_helper/CalibrationCv.h>
 #include <frame_helper/FrameHelper.h>
