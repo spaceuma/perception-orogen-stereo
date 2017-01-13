@@ -20,6 +20,8 @@ namespace stereo {
     {
 	friend class TaskBase;
     protected:
+    //Instance for the input ports
+    RTT::extras::ReadOnlyPointer<base::samples::frame::Frame> leftFrame, rightFrame;
 	///Instance of dense stereo processing
 	DenseStereo *dense_stereo;
 	stereo::StereoFeatures *sparse_stereo;

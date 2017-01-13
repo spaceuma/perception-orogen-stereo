@@ -49,6 +49,9 @@ task_context "Task" do
    output_port("stereo_features", "/stereo/StereoFeatureArray").
 	doc "provides an array of 3d points with associated feature descriptors."
 
+    output_port("point_cloud", "/base/samples/Pointcloud").
+	    doc "Colored 3d point cloud of the dense stereo reconstruction."
+
    port_driven
 end
 
