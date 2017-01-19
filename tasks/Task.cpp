@@ -295,20 +295,50 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
             Eigen::Vector3d point;
             cv::Mat color_image_mat = frame_helper::FrameHelper::convertToCvMat(*this->leftFrame);
 
-            for(size_t y = 0; y < distanceFrame.height ; ++y)
+            /** Organize point cloud **/
+            if(_organized_output_point_cloud.value())
             {
-                for(size_t x = 0; x < distanceFrame.width ; ++x)
+                point_cloud.points.resize(distanceFrame.width * distanceFrame.height);
+                point_cloud.colors.resize(distanceFrame.width * distanceFrame.height);
+
+                for (std::vector<base::Point>::iterator it = point_cloud.points.begin();
+                        it != point_cloud.points.end(); ++it)
                 {
-                    if (distanceFrame.getScenePoint(x, y, point))
+                    (*it).z() = std::numeric_limits<double>::quiet_NaN ();
+                    //(*it) = base::Point(0.00, 0.00, 0.00);
+                }
+
+                for(size_t y = 0; y < distanceFrame.height ; ++y)
+                {
+                    for(size_t x = 0; x < distanceFrame.width ; ++x)
                     {
-                        point_cloud.points.push_back(point);
-                        cv::Vec3b color = color_image_mat.at<cv::Vec3b>(y, x);
-                        point_cloud.colors.push_back(base::Vector4d(color[0]/255.0, color[1]/255.0, color[2]/255.0, 1.0));
+                        if (distanceFrame.getScenePoint(x, y, point))
+                        {
+                            point_cloud.points[distanceFrame.width*y+x] = point;
+                            cv::Vec3b color = color_image_mat.at<cv::Vec3b>(y, x);
+                            point_cloud.colors[distanceFrame.width*y+x] = base::Vector4d(color[0]/255.0, color[1]/255.0, color[2]/255.0, 1.0);
+                        }
+                    }
+                }
+
+            }
+            else
+            {
+                for(size_t y = 0; y < distanceFrame.height ; ++y)
+                {
+                    for(size_t x = 0; x < distanceFrame.width ; ++x)
+                    {
+                        if (distanceFrame.getScenePoint(x, y, point))
+                        {
+                            point_cloud.points.push_back(point);
+                            cv::Vec3b color = color_image_mat.at<cv::Vec3b>(y, x);
+                            point_cloud.colors.push_back(base::Vector4d(color[0]/255.0, color[1]/255.0, color[2]/255.0, 1.0));
+                        }
                     }
                 }
             }
 
-            //write to output
+            /** write to output **/
             _point_cloud.write(point_cloud);
         }
     }

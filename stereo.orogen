@@ -29,6 +29,8 @@ task_context "Task" do
 	doc "gaussian kernel for dense stereo pre-processing."
    property("sparse_config", "/stereo/FeatureConfiguration").
 	doc "configuration for sparse features."
+    property("organized_output_point_cloud", "bool", false).
+        doc "True for Organized output point cloud. False otherwise."
 
    input_port "left_frame", ro_ptr('base::samples::frame::Frame')
    input_port "right_frame", ro_ptr('base::samples::frame::Frame')
