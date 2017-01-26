@@ -180,16 +180,16 @@ void Task::updateHook()
 	}
         
 	// Get the images and force the timestamp
-	::base::samples::frame::Frame *frame_left_ptr_sync = leftFrame.write_access();
+	/*::base::samples::frame::Frame *frame_left_ptr_sync = leftFrame.write_access();
         ::base::samples::frame::Frame *frame_right_ptr_sync = rightFrame.write_access();
         frame_left_ptr_sync->received_time = base::Time::now();
         frame_right_ptr_sync->received_time = frame_left_ptr_sync->received_time;
 
-        // Write the images to the synced output ports
+         //Write the images to the synced output ports
         frame_left.reset(frame_left_ptr_sync);
         _left_frame_sync.write(frame_left);
         frame_right.reset(frame_right_ptr_sync);
-        _right_frame_sync.write(frame_right);
+        _right_frame_sync.write(frame_right);*/
 
 	// setup buffers for conversion
 	leftFrameTarget.init( leftFrame->getWidth() * imageScalingFactor, leftFrame->getHeight() * imageScalingFactor, 8, base::samples::frame::MODE_GRAYSCALE );
@@ -199,6 +199,18 @@ void Task::updateHook()
 	const bool undistort = !_image_rectified.value();
 	leftConv.convert( ltmp, leftFrameTarget, 0, 0, frame_helper::INTER_LINEAR, undistort );
 	rightConv.convert( rtmp, rightFrameTarget, 0, 0, frame_helper::INTER_LINEAR, undistort );
+	
+	
+	::base::samples::frame::Frame *frame_left_ptr_sync = &leftFrameTarget;
+        ::base::samples::frame::Frame *frame_right_ptr_sync = &rightFrameTarget;
+        frame_left_ptr_sync->received_time = base::Time::now();
+        frame_right_ptr_sync->received_time = frame_left_ptr_sync->received_time;
+        
+	        // Write the images to the synced output ports
+        frame_left.reset(frame_left_ptr_sync);
+        _left_frame_sync.write(frame_left);
+        frame_right.reset(frame_right_ptr_sync);
+        _right_frame_sync.write(frame_right);
 	
 	// get a cv::Mat wrapper around the frames
 	cv::Mat rightCvFrame = frame_helper::FrameHelper::convertToCvMat(rightFrameTarget);
