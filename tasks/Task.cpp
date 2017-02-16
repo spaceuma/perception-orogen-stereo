@@ -199,10 +199,15 @@ void Task::updateHook()
 	const bool undistort = !_image_rectified.value();
 	leftConv.convert( ltmp, leftFrameTarget, 0, 0, frame_helper::INTER_LINEAR, undistort );
 	rightConv.convert( rtmp, rightFrameTarget, 0, 0, frame_helper::INTER_LINEAR, undistort );
+
+	// setup buffers for conversion
+	leftFrameSync.init( leftFrame->getWidth() * imageScalingFactor, leftFrame->getHeight() * imageScalingFactor, 8, _output_format_sync.value() );
+	rightFrameSync.init( leftFrame->getWidth() * imageScalingFactor, leftFrame->getHeight() * imageScalingFactor, 8, _output_format_sync.value() );
+	leftConv.convert( ltmp, leftFrameSync, 0, 0, frame_helper::INTER_LINEAR, undistort );
+	rightConv.convert( rtmp, rightFrameSync, 0, 0, frame_helper::INTER_LINEAR, undistort );
 	
-	
-	::base::samples::frame::Frame *frame_left_ptr_sync = &leftFrameTarget;
-        ::base::samples::frame::Frame *frame_right_ptr_sync = &rightFrameTarget;
+	::base::samples::frame::Frame *frame_left_ptr_sync = &leftFrameSync;
+        ::base::samples::frame::Frame *frame_right_ptr_sync = &rightFrameSync;
         frame_left_ptr_sync->received_time = base::Time::now();
         frame_right_ptr_sync->received_time = frame_left_ptr_sync->received_time;
         

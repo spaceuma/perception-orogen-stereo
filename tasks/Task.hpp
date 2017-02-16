@@ -24,7 +24,7 @@ namespace stereo {
 	DenseStereo *dense_stereo;
 	stereo::StereoFeatures *sparse_stereo;
 
-	base::samples::frame::Frame leftFrameTarget, rightFrameTarget;
+	base::samples::frame::Frame leftFrameTarget, rightFrameTarget, leftFrameSync, rightFrameSync;
 	frame_helper::FrameHelper leftConv, rightConv;
 	bool leftFrameValid, rightFrameValid;
 	cv::Size imageSize;
