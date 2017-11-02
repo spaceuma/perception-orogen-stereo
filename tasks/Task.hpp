@@ -5,7 +5,7 @@
 
 #include <stddef.h>
 #include <opencv/cv.h>
-#include <base/samples/frame.h>
+#include <base/samples/Frame.hpp>
 #include <frame_helper/CalibrationCv.h>
 #include <frame_helper/FrameHelper.h>
 
@@ -20,6 +20,8 @@ namespace stereo {
     {
 	friend class TaskBase;
     protected:
+    //Instance for the input ports
+    RTT::extras::ReadOnlyPointer<base::samples::frame::Frame> leftFrame, rightFrame;
 	///Instance of dense stereo processing
 	DenseStereo *dense_stereo;
 	stereo::StereoFeatures *sparse_stereo;

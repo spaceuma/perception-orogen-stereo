@@ -10,7 +10,7 @@
 #include <stereo/densestereo.h>
 #include <stereo/sparse_stereo.hpp>
 #include <stereo/dense_stereo_types.h>
-#include <base/time.h>
+#include <base/Time.hpp>
 #include <frame_helper/Calibration.h>
 #include <frame_helper/CalibrationCv.h>
 #include <frame_helper/FrameHelper.h>
@@ -149,7 +149,6 @@ void Task::updateHook()
 {
     TaskBase::updateHook();
 
-    RTT::extras::ReadOnlyPointer<base::samples::frame::Frame> leftFrame, rightFrame;
     while( _left_frame.read(leftFrame) == RTT::NewData ) leftFrameValid = true;
     while( _right_frame.read(rightFrame) == RTT::NewData ) rightFrameValid = true;
     
@@ -276,12 +275,12 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
     // create a frame to display the disparity image (mainly for debug)
     if( _disparity_frame.connected() )
     {
-	base::samples::frame::Frame disparity_image( 
-		distanceFrame.width, distanceFrame.height, 8, 
-		base::samples::frame::MODE_RGB );
-	disparity_image.time = leftFrameTarget.time;
-	const float scaling_factor = 255.0f / *std::max_element( distanceFrame.data.begin(), distanceFrame.data.end() );
-	uint8_t *data = disparity_image.getImagePtr();
+        base::samples::frame::Frame disparity_image( 
+                distanceFrame.width, distanceFrame.height, 8, 
+                base::samples::frame::MODE_RGB );
+        disparity_image.time = leftFrameTarget.time;
+        const float scaling_factor = 255.0f / *std::max_element( distanceFrame.data.begin(), distanceFrame.data.end() );
+        uint8_t *data = disparity_image.getImagePtr();
 
         static bool lut_initialized = false;
         static uint8_t red[256];
@@ -376,8 +375,63 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
 
     if( _distance_frame.connected() )
     {
-	//write to output
-	_distance_frame.write(distanceFrame);
+        //write to output
+        _distance_frame.write(distanceFrame);
+
+        if (_point_cloud.connected())
+        {
+            /** Convert to point cloud with color **/
+            base::samples::Pointcloud point_cloud;
+            point_cloud.time = distanceFrame.time;
+            Eigen::Vector3d point;
+            cv::Mat color_image_mat = frame_helper::FrameHelper::convertToCvMat(*this->leftFrame);
+
+            /** Organize point cloud **/
+            if(_organized_output_point_cloud.value())
+            {
+                point_cloud.points.resize(distanceFrame.width * distanceFrame.height);
+                point_cloud.colors.resize(distanceFrame.width * distanceFrame.height);
+
+                for (std::vector<base::Point>::iterator it = point_cloud.points.begin();
+                        it != point_cloud.points.end(); ++it)
+                {
+                    (*it).z() = std::numeric_limits<double>::quiet_NaN ();
+                    //(*it) = base::Point(0.00, 0.00, 0.00);
+                }
+
+                for(size_t y = 0; y < distanceFrame.height ; ++y)
+                {
+                    for(size_t x = 0; x < distanceFrame.width ; ++x)
+                    {
+                        if (distanceFrame.getScenePoint(x, y, point))
+                        {
+                            point_cloud.points[distanceFrame.width*y+x] = point;
+                            cv::Vec3b color = color_image_mat.at<cv::Vec3b>(y, x);
+                            point_cloud.colors[distanceFrame.width*y+x] = base::Vector4d(color[0]/255.0, color[1]/255.0, color[2]/255.0, 1.0);
+                        }
+                    }
+                }
+
+            }
+            else
+            {
+                for(size_t y = 0; y < distanceFrame.height ; ++y)
+                {
+                    for(size_t x = 0; x < distanceFrame.width ; ++x)
+                    {
+                        if (distanceFrame.getScenePoint(x, y, point))
+                        {
+                            point_cloud.points.push_back(point);
+                            cv::Vec3b color = color_image_mat.at<cv::Vec3b>(y, x);
+                            point_cloud.colors.push_back(base::Vector4d(color[0]/255.0, color[1]/255.0, color[2]/255.0, 1.0));
+                        }
+                    }
+                }
+            }
+
+            /** write to output **/
+            _point_cloud.write(point_cloud);
+        }
     }
 }
 

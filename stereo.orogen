@@ -32,6 +32,8 @@ task_context "Task" do
 	doc "gaussian kernel for dense stereo pre-processing."
    property("sparse_config", "/stereo/FeatureConfiguration").
 	doc "configuration for sparse features."
+    property("organized_output_point_cloud", "bool", false).
+        doc "True for Organized output point cloud. False otherwise."
 
    input_port "left_frame", ro_ptr('base::samples::frame::Frame')
    input_port "right_frame", ro_ptr('base::samples::frame::Frame')
@@ -52,7 +54,7 @@ task_context "Task" do
    output_port("stereo_features", "/stereo/StereoFeatureArray").
 	doc "provides an array of 3d points with associated feature descriptors."
 
-   # Synchronous output 
+   # Synchronous output
    output_port('left_frame_sync', ro_ptr('base::samples::frame::Frame')).
         doc 'Synchronized Left camera frame of PanCam.'
    output_port('right_frame_sync', ro_ptr('base::samples::frame::Frame')).
@@ -60,6 +62,9 @@ task_context "Task" do
    property("output_format_sync", "/base/samples/frame/frame_mode_t", :MODE_UNDEFINED).
         doc "The camera_format is converted into this format before it is written to the output port "
             "Set it to MODE_UNDEFINED if you want to disable the conversion and the camera_format shall be used"
+
+    output_port("point_cloud", "/base/samples/Pointcloud").
+        doc "Colored 3d point cloud of the dense stereo reconstruction."
 
    port_driven
 end
