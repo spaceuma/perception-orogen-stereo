@@ -18,37 +18,33 @@ namespace stereo {
 
     class Task : public TaskBase
     {
-	friend class TaskBase;
+        friend class TaskBase;
+
     protected:
-    //Instance for the input ports
-    RTT::extras::ReadOnlyPointer<base::samples::frame::Frame> leftFrame, rightFrame;
-	///Instance of dense stereo processing
-	DenseStereo *dense_stereo;
-	stereo::StereoFeatures *sparse_stereo;
+        //Instance for the input ports
+        RTT::extras::ReadOnlyPointer<base::samples::frame::Frame> leftFrame, rightFrame;
+        ///Instance of dense stereo processing
+        DenseStereo *dense_stereo;
 
-	base::samples::frame::Frame leftFrameTarget, rightFrameTarget, leftFrameSync, rightFrameSync;
-	frame_helper::FrameHelper leftConv, rightConv;
-	bool leftFrameValid, rightFrameValid;
-	cv::Size imageSize;
-      double imageScalingFactor;
-	frame_helper::StereoCalibration calibration;
+        base::samples::frame::Frame leftFrameTarget, rightFrameTarget, leftFrameSync, rightFrameSync;
+        frame_helper::FrameHelper leftConv, rightConv;
+        bool leftFrameValid, rightFrameValid;
+        cv::Size imageSize;
+        double imageScalingFactor;
+        frame_helper::StereoCalibration calibration;
 
-	void initCalibration( cv::Size imageSize );
-	void denseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage );
-	void sparseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage );
-      
-	class SparseDebugImpl;
-	SparseDebugImpl *sparseDebug;
+        void initCalibration( cv::Size imageSize );
+        void denseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage );
 
-	//Dumy pointers needed to fake the timestmaps
-        RTT::extras::ReadOnlyPointer<base::samples::frame::Frame> frame_left;   
-        RTT::extras::ReadOnlyPointer<base::samples::frame::Frame> frame_right;  
+        //Dumy pointers needed to fake the timestmaps
+        RTT::extras::ReadOnlyPointer<base::samples::frame::Frame> frame_left;
+        RTT::extras::ReadOnlyPointer<base::samples::frame::Frame> frame_right;
 
     public:
         Task(std::string const& name = "stereo::Task");
         Task(std::string const& name, RTT::ExecutionEngine* engine);
 
-	~Task();
+        ~Task();
 
         /** This hook is called by Orocos when the state machine transitions
          * from PreOperational to Stopped. If it returns false, then the
@@ -78,7 +74,7 @@ namespace stereo {
          *
          * The error(), exception() and fatal() calls, when called in this hook,
          * allow to get into the associated RunTimeError, Exception and
-         * FatalError states. 
+         * FatalError states.
          *
          * In the first case, updateHook() is still called, and recover() allows
          * you to go back into the Running state.  In the second case, the

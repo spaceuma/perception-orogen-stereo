@@ -8,7 +8,6 @@
 #include <opencv/highgui.h>
 
 #include <stereo/densestereo.h>
-#include <stereo/sparse_stereo.hpp>
 #include <stereo/dense_stereo_types.h>
 #include <base/Time.hpp>
 #include <frame_helper/Calibration.h>
@@ -21,109 +20,38 @@
 #include <pcl/io/ply_io.h>
 #include <pcl/point_types.h>
 #include <pcl/filters/passthrough.h>
-//#include <pcl/visualization/pcl_visualizer.h>
-//#include "pcl/visualization/cloud_viewer.h"
-
 
 #include <stdexcept>
 
-
-//typedef pcl::PointXYZRGBA PointT;
-//typedef pcl::PointCloud<PointT> PointCloudT;
 typedef pcl::PointXYZRGB PointType;
 typedef pcl::PointCloud<PointType> CloudType;
 CloudType::Ptr cloud (new CloudType);
 
 using namespace stereo;
 
-namespace stereo
-{
-struct Task::SparseDebugImpl
-{
-    base::samples::frame::Frame debugFrame; 
-    cv::Mat stereoFrame[2];
-    stereo::StereoFeatureArray features[2];
-    bool hasPrev;
-    int idx;
-	
-    cv::Mat& currentFrame() { return stereoFrame[idx]; }
-    cv::Mat& previousFrame() { return stereoFrame[(idx+1)%2]; }
-
-    stereo::StereoFeatureArray& currentFeatures() { return features[idx]; }
-    stereo::StereoFeatureArray& previousFeatures() { return features[(idx+1)%2]; }
-
-    SparseDebugImpl() : hasPrev(false), idx(0) {}
-
-    void update( Task* task )
-    {
-	stereo::StereoFeatures *stereo = task->sparse_stereo;
-
-	stereo->getDebugImage().copyTo( currentFrame() );
-	currentFeatures() = stereo->getStereoFeatures();
-
-	if( hasPrev )
-	{
-	    stereo->calculateInterFrameCorrespondences( previousFeatures(), currentFeatures(), stereo::FILTER_ISOMETRY );
-	    cv::Mat debugImage = stereo->getInterFrameDebugImage( previousFrame(), previousFeatures(), currentFrame(), currentFeatures());
-
-	    frame_helper::FrameHelper::copyMatToFrame( 
-		    debugImage, debugFrame );
-
-	    task->_sparse_debug.write( debugFrame );
-	}
-
-	currentFrame().copyTo( previousFrame() );
-	previousFeatures() = currentFeatures();
-	hasPrev = true;
-
-	idx = (idx+1)%2;
-    }
-
-};
-}
-
-Task::Task(std::string const& name): TaskBase(name), dense_stereo(0), sparse_stereo(0), sparseDebug( new Task::SparseDebugImpl() )
+Task::Task(std::string const& name): TaskBase(name), dense_stereo(0)
 {
 }
 
-Task::Task(std::string const& name, RTT::ExecutionEngine* engine): TaskBase(name, engine), dense_stereo(0), sparse_stereo(0), sparseDebug( new Task::SparseDebugImpl() )
+Task::Task(std::string const& name, RTT::ExecutionEngine* engine): TaskBase(name, engine), dense_stereo(0)
 {
 }
-
 
 Task::~Task()
 {
 }
 
-//RTT::extras::ReadOnlyPointer<base::samples::frame::Frame> leftFrame, rightFrame;//besser?
-
-/// The following lines are template definitions for the various state machine
-// hooks defined by Orocos::RTT. See Task.hpp for more detailed
-// documentation about them.
-
 bool Task::configureHook()
 {
-    //PointCloudT::Ptr cloud (new PointCloudT);
 
-	// Visualization
-	//pcl::visualization::PCLVisualizer viewer ("PCL visualizer");
-    
     // initialize dense stereo
     if(dense_stereo)
-	delete dense_stereo;
-	
-    dense_stereo = new DenseStereo();
+        delete dense_stereo;
+
     // configure dense stereo
+    dense_stereo = new DenseStereo();
     dense_stereo->setLibElasConfiguration(_libElas_conf.get());
     dense_stereo->setGaussianKernel( _gaussian_kernel.get() );
-
-    if(sparse_stereo)
-	delete sparse_stereo;
-       
-    sparse_stereo = new StereoFeatures();
-
-    // configure sparse stereo
-    sparse_stereo->setConfiguration( _sparse_config.get() );
 
     calibration = _stereoCameraCalibration.get();
 
@@ -137,8 +65,8 @@ bool Task::configureHook()
 bool Task::startHook()
 {
     if (! TaskBase::startHook())
-        return false;    
-    
+        return false;
+
     leftFrameValid = false;
     rightFrameValid = false;
 
@@ -151,47 +79,45 @@ void Task::updateHook()
 
     while( _left_frame.read(leftFrame) == RTT::NewData ) leftFrameValid = true;
     while( _right_frame.read(rightFrame) == RTT::NewData ) rightFrameValid = true;
-    
+
     // check conditions which must be met so we can/should calculate the distance image
     if( leftFrameValid && rightFrameValid && (std::abs((leftFrame->time - rightFrame->time).toMilliseconds()) < 5) )
     {
-	// see if we need to initialize the calibration
-	// which has to be done when the image size is 
-	//
-	// this can only be done once the image size is known
-	cv::Size currentSize = cv::Size( leftFrame->getWidth() * imageScalingFactor, leftFrame->getHeight() * imageScalingFactor );
-	if( currentSize != imageSize )
-	{
-	    imageSize = currentSize;
-	    initCalibration( imageSize );
-	}
+        // see if we need to initialize the calibration
+        // this can only be done once the image size is known
+        cv::Size currentSize = cv::Size( leftFrame->getWidth() * imageScalingFactor, leftFrame->getHeight() * imageScalingFactor );
+        if( currentSize != imageSize )
+        {
+            imageSize = currentSize;
+            initCalibration( imageSize );
+        }
 
-	// create tmp frames in case we need to flip
-	base::samples::frame::Frame ltmp, rtmp;
-	// flip input images
-	if( _image_rotated.value() )
-	{
-	    leftConv.rotateBy180Degrees( *leftFrame, ltmp );
-	    rightConv.rotateBy180Degrees( *rightFrame, rtmp );
-	} else {
-	    ltmp.init(*leftFrame, true);
-	    rtmp.init(*rightFrame, true);
-	}
+        // create tmp frames in case we need to flip
+        base::samples::frame::Frame ltmp, rtmp;
+        // flip input images
+        if( _image_rotated.value() )
+        {
+            leftConv.rotateBy180Degrees( *leftFrame, ltmp );
+            rightConv.rotateBy180Degrees( *rightFrame, rtmp );
+        } else {
+            ltmp.init(*leftFrame, true);
+            rtmp.init(*rightFrame, true);
+        }
 
-	// setup buffers for conversion
-	leftFrameTarget.init( leftFrame->getWidth() * imageScalingFactor, leftFrame->getHeight() * imageScalingFactor, 8, base::samples::frame::MODE_GRAYSCALE );
-	rightFrameTarget.init( leftFrame->getWidth() * imageScalingFactor, leftFrame->getHeight() * imageScalingFactor, 8, base::samples::frame::MODE_GRAYSCALE );
+        // setup buffers for conversion
+        leftFrameTarget.init( leftFrame->getWidth() * imageScalingFactor, leftFrame->getHeight() * imageScalingFactor, 8, base::samples::frame::MODE_GRAYSCALE );
+        rightFrameTarget.init( leftFrame->getWidth() * imageScalingFactor, leftFrame->getHeight() * imageScalingFactor, 8, base::samples::frame::MODE_GRAYSCALE );
 
-	// see if we want to undistort and perform the conversion
-	const bool undistort = !_image_rectified.value();
-	leftConv.convert( ltmp, leftFrameTarget, 0, 0, frame_helper::INTER_LINEAR, undistort );
-	rightConv.convert( rtmp, rightFrameTarget, 0, 0, frame_helper::INTER_LINEAR, undistort );
+        // see if we want to undistort and perform the conversion
+        const bool undistort = !_image_rectified.value();
+        leftConv.convert( ltmp, leftFrameTarget, 0, 0, frame_helper::INTER_LINEAR, undistort );
+        rightConv.convert( rtmp, rightFrameTarget, 0, 0, frame_helper::INTER_LINEAR, undistort );
 
-	// setup buffers for conversion
-	leftFrameSync.init( leftFrame->getWidth() * imageScalingFactor, leftFrame->getHeight() * imageScalingFactor, 8, _output_format_sync.value() );
-	rightFrameSync.init( leftFrame->getWidth() * imageScalingFactor, leftFrame->getHeight() * imageScalingFactor, 8, _output_format_sync.value() );
-	leftConv.convert( ltmp, leftFrameSync, 0, 0, frame_helper::INTER_LINEAR, undistort );
-	rightConv.convert( rtmp, rightFrameSync, 0, 0, frame_helper::INTER_LINEAR, undistort );
+        // setup buffers for conversion
+        leftFrameSync.init( leftFrame->getWidth() * imageScalingFactor, leftFrame->getHeight() * imageScalingFactor, 8, _output_format_sync.value() );
+        rightFrameSync.init( leftFrame->getWidth() * imageScalingFactor, leftFrame->getHeight() * imageScalingFactor, 8, _output_format_sync.value() );
+        leftConv.convert( ltmp, leftFrameSync, 0, 0, frame_helper::INTER_LINEAR, undistort );
+        rightConv.convert( rtmp, rightFrameSync, 0, 0, frame_helper::INTER_LINEAR, undistort );
 
         // ::base::samples::frame::Frame *frame_left_ptr_sync = &leftFrameSync;
         // ::base::samples::frame::Frame *frame_right_ptr_sync = &rightFrameSync;
@@ -203,33 +129,22 @@ void Task::updateHook()
         // _left_frame_sync.write(frame_left);
         // frame_right.reset(frame_right_ptr_sync);
         // _right_frame_sync.write(frame_right);
-	
-	// get a cv::Mat wrapper around the frames
-	cv::Mat rightCvFrame = frame_helper::FrameHelper::convertToCvMat(rightFrameTarget);
-	cv::Mat leftCvFrame = frame_helper::FrameHelper::convertToCvMat(leftFrameTarget);
 
-//	static int i = 0;
-//	cv::imwrite( "/tmp/left_" + boost::lexical_cast<std::string>(i) + ".png", leftCvFrame ); 
-//	cv::imwrite( "/tmp/right_" + boost::lexical_cast<std::string>(i) + ".png", rightCvFrame ); 
-//	i++;
+        // get a cv::Mat wrapper around the frames
+        cv::Mat rightCvFrame = frame_helper::FrameHelper::convertToCvMat(rightFrameTarget);
+        cv::Mat leftCvFrame = frame_helper::FrameHelper::convertToCvMat(leftFrameTarget);
 
-	// perform dense stereo processing if the output ports are connected
-	if(_distance_frame.connected() || _disparity_frame.connected() || _point_cloud.connected())
-	    denseStereo( leftCvFrame, rightCvFrame );
-
-	// same for sparse
-	//if( _sparse_debug.connected() || _stereo_features.connected() )
-	//    sparseStereo( leftCvFrame, rightCvFrame );
+        // perform dense stereo processing if the output ports are connected
+        if(_distance_frame.connected() || _disparity_frame.connected() || _point_cloud.connected())
+            denseStereo( leftCvFrame, rightCvFrame );
     }
 }
 
 void Task::initCalibration( const cv::Size imageSize )
 {
     // initialize the the dense stereo lib calibration
-    dense_stereo->setStereoCalibration( calibration, 
-	    imageSize.width, imageSize.height );
-
-    sparse_stereo->setCalibration(calibration);
+    dense_stereo->setStereoCalibration( calibration,
+            imageSize.width, imageSize.height );
 
     // setup frame helper for left and right
     frame_helper::StereoCalibrationCv stereoCalib;
@@ -248,23 +163,23 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
     base::samples::DistanceImage distanceFrame, rightDistanceFrame;
     distanceFrame.time = leftFrameTarget.time;
     cv::Mat
-	leftCvResult = dense_stereo->createLeftDistanceImage( distanceFrame ),
-	rightCvResult = dense_stereo->createRightDistanceImage( rightDistanceFrame );
+        leftCvResult = dense_stereo->createLeftDistanceImage( distanceFrame ),
+                     rightCvResult = dense_stereo->createRightDistanceImage( rightDistanceFrame );
 
     try {
-    // calculate the distance images
-    dense_stereo->processFramePair(leftCvFrame, rightCvFrame, 
-	    leftCvResult, rightCvResult, true);
+        // calculate the distance images
+        dense_stereo->processFramePair(leftCvFrame, rightCvFrame,
+                leftCvResult, rightCvResult, true);
     } catch (std::runtime_error &e)
     {
-	return;
-    } 
+        return;
+    }
 
     // create disparity frame
     if(_disparity_frame.connected() || _point_cloud.connected())
     {
-        base::samples::frame::Frame disparity_image( 
-                distanceFrame.width, distanceFrame.height, 8, 
+        base::samples::frame::Frame disparity_image(
+                distanceFrame.width, distanceFrame.height, 8,
                 base::samples::frame::MODE_RGB );
         disparity_image.time = leftFrameTarget.time;
         const float scaling_factor = 255.0f / *std::max_element( distanceFrame.data.begin(), distanceFrame.data.end() );
@@ -278,88 +193,42 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
         if(!lut_initialized) {
             //populate some lookup tables for grayscale depth to color depth matching
             for(int i = 0; i < 256; ++i)
-            red[i] = green[i] = blue[i] = 0;
+                red[i] = green[i] = blue[i] = 0;
             for(int i = 0; i < 64; ++i){
-            red[i+95] = std::min(4*i, 255);
-            green[i+31] = std::min(4*i, 255);
-            blue[i] = std::min(132 + 4*i, 255);
+                red[i+95] = std::min(4*i, 255);
+                green[i+31] = std::min(4*i, 255);
+                blue[i] = std::min(132 + 4*i, 255);
             }
             for(int i = 0; i < 65; ++i){
-            red[i+159] = 255;
-            green[i+95] = 255;
-            blue[i+31] = 255;
+                red[i+159] = 255;
+                green[i+95] = 255;
+                blue[i+31] = 255;
             }
             for(int i = 0; i < 64; ++i){
-            if(i < 32) red[i+224] = std::max(4*(63 - i), 0);
-            green[i+160] = std::max(4*(63 - i), 0);
-            blue[i+96] = std::max(4*(63 - i), 0);
+                if(i < 32) red[i+224] = std::max(4*(63 - i), 0);
+                green[i+160] = std::max(4*(63 - i), 0);
+                blue[i+96] = std::max(4*(63 - i), 0);
             }
             lut_initialized = true;
         }
-        
 
         for( size_t i=0; i<distanceFrame.data.size(); ++i ) {
             if(distanceFrame.data[i] > 0){
-            *(data++) = red[(uint8_t)(distanceFrame.data[i] * scaling_factor)];
-            *(data++) = green[(uint8_t)(distanceFrame.data[i] * scaling_factor)];
-            *(data++) = blue[(uint8_t)(distanceFrame.data[i] * scaling_factor)];
+                *(data++) = red[(uint8_t)(distanceFrame.data[i] * scaling_factor)];
+                *(data++) = green[(uint8_t)(distanceFrame.data[i] * scaling_factor)];
+                *(data++) = blue[(uint8_t)(distanceFrame.data[i] * scaling_factor)];
             } else { // if depth information is not valid --> black pixel
-            *(data++) = 0;
-            *(data++) = 0;
-            *(data++) = 0;
+                *(data++) = 0;
+                *(data++) = 0;
+                *(data++) = 0;
             }
         }
-        
-        
-        
-        
-        
-        /*
-        cloud->width = distanceFrame.width;
-	    cloud->height = distanceFrame.height;
-    	cloud->is_dense = false;
-    	cloud->points.resize (cloud->width * cloud->height);
-
-        for( size_t i=0; i<distanceFrame.data.size(); ++i ) {
-            if(distanceFrame.data[i] > 0){
-   		    cloud->points[i].x = 1024 * rand () / (RAND_MAX + 1.0f);
-	    	cloud->points[i].y = 1024 * rand () / (RAND_MAX + 1.0f);
-		    cloud->points[i].z = 1024 * rand () / (RAND_MAX + 1.0f);
-    		// Method #1 - Random color for each point
-    		cloud->points[i].r = 255 *(1024 * rand () / (RAND_MAX + 1.0f));
-    		cloud->points[i].g = 255 *(1024 * rand () / (RAND_MAX + 1.0f));
-    		cloud->points[i].b = 255 *(1024 * rand () / (RAND_MAX + 1.0f));
-                
-            *(data++) = red[(uint8_t)(distanceFrame.data[i] * scaling_factor)];
-            *(data++) = green[(uint8_t)(distanceFrame.data[i] * scaling_factor)];
-            *(data++) = blue[(uint8_t)(distanceFrame.data[i] * scaling_factor)];
-            } else { // if depth information is not valid --> black pixel
-            cloud->points[i].x = 0;
-	    	cloud->points[i].y = 0;
-		    cloud->points[i].z = 0;
-    		// Method #1 - Random color for each point
-    		cloud->points[i].r = 0;
-    		cloud->points[i].g = 0;
-    		cloud->points[i].b = 0;
-            }
-        }
-	    viewer.addPointCloud (cloud, "cloud"); // Method #1
-        */
 
         _disparity_frame.write( disparity_image );
-        static int j = 0;
-	    //cv::imwrite( "/tmp/disparity_" + boost::lexical_cast<std::string>(j) + ".png", frame_helper::FrameHelper::convertToCvMat(disparity_image));
-//        cv::FileStorage file("/tmp/disparity_" + boost::lexical_cast<std::string>(j) + ".yml", cv::FileStorage::WRITE);
-//        file << "Disparity" << leftCvResult;
-//        j++;
     }
 
     // calculate distance images from disparity images
     dense_stereo->getDistanceImages( leftCvResult, rightCvResult );
-    
-    // if there is a sparse processor, it might need the dense images
-    if( sparse_stereo )
-	sparse_stereo->setDistanceImages( &distanceFrame, &rightDistanceFrame );
 
     if(_distance_frame.connected() || _point_cloud.connected())
     {
@@ -384,7 +253,6 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
                         it != point_cloud.points.end(); ++it)
                 {
                     (*it).z() = std::numeric_limits<double>::quiet_NaN ();
-                    //(*it) = base::Point(0.00, 0.00, 0.00);
                 }
 
                 for(size_t y = 0; y < distanceFrame.height ; ++y)
@@ -423,30 +291,15 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
     }
 }
 
-void Task::sparseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage )
-{
-    sparse_stereo->processFramePair( leftImage, rightImage );
-    if( _sparse_debug.connected() )
-	sparseDebug->update( this );
-    StereoFeatureArray &feature_array( sparse_stereo->getStereoFeatures() );
-    feature_array.time = rightFrameTarget.time;
-    _stereo_features.write( feature_array ); 
-}
-
-// void Task::errorHook()
-// {
-//     TaskBase::errorHook();
-// }
 void Task::stopHook()
 {
     delete dense_stereo;
-    delete sparse_stereo;
 
     dense_stereo = 0;
-    sparse_stereo = 0;
-    
+
     TaskBase::stopHook();
 }
+
 void Task::cleanupHook()
 {
     TaskBase::cleanupHook();
