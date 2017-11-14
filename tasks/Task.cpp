@@ -226,7 +226,7 @@ void Task::updateHook()
 //	i++;
 
 	// perform dense stereo processing if the output ports are connected
-	if( _distance_frame.connected() || _disparity_frame.connected() )
+	if(_distance_frame.connected() || _disparity_frame.connected() || _point_cloud.connected())
 	    denseStereo( leftCvFrame, rightCvFrame );
 
 	// same for sparse
@@ -272,8 +272,8 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
 	return;
     } 
 
-    // create a frame to display the disparity image (mainly for debug)
-    if( _disparity_frame.connected() )
+    // create disparity frame
+    if(_disparity_frame.connected() || _point_cloud.connected())
     {
         base::samples::frame::Frame disparity_image( 
                 distanceFrame.width, distanceFrame.height, 8, 
@@ -373,7 +373,7 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
     if( sparse_stereo )
 	sparse_stereo->setDistanceImages( &distanceFrame, &rightDistanceFrame );
 
-    if( _distance_frame.connected() )
+    if(_distance_frame.connected() || _point_cloud.connected())
     {
         //write to output
         _distance_frame.write(distanceFrame);
