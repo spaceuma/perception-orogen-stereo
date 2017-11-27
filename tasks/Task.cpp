@@ -262,8 +262,12 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
                         if (distanceFrame.getScenePoint(x, y, point))
                         {
                             point_cloud.points[distanceFrame.width*y+x] = point;
-                            cv::Vec3b color = color_image_mat.at<cv::Vec3b>(y, x);
-                            point_cloud.colors[distanceFrame.width*y+x] = base::Vector4d(color[0]/255.0, color[1]/255.0, color[2]/255.0, 1.0);
+
+                            if (_colored_output_point_cloud.value())
+                            {
+                                cv::Vec3b color = color_image_mat.at<cv::Vec3b>(y, x);
+                                point_cloud.colors[distanceFrame.width*y+x] = base::Vector4d(color[0]/255.0, color[1]/255.0, color[2]/255.0, 1.0);
+                            }
                         }
                     }
                 }
@@ -278,8 +282,12 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
                         if (distanceFrame.getScenePoint(x, y, point))
                         {
                             point_cloud.points.push_back(point);
-                            cv::Vec3b color = color_image_mat.at<cv::Vec3b>(y, x);
-                            point_cloud.colors.push_back(base::Vector4d(color[0]/255.0, color[1]/255.0, color[2]/255.0, 1.0));
+
+                            if (_colored_output_point_cloud.value())
+                            {
+                                cv::Vec3b color = color_image_mat.at<cv::Vec3b>(y, x);
+                                point_cloud.colors.push_back(base::Vector4d(color[0]/255.0, color[1]/255.0, color[2]/255.0, 1.0));
+                            }
                         }
                     }
                 }
