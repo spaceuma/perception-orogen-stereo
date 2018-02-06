@@ -119,16 +119,10 @@ void Task::updateHook()
         leftConv.convert( ltmp, leftFrameSync, 0, 0, frame_helper::INTER_LINEAR, undistort );
         rightConv.convert( rtmp, rightFrameSync, 0, 0, frame_helper::INTER_LINEAR, undistort );
 
-        // ::base::samples::frame::Frame *frame_left_ptr_sync = &leftFrameSync;
-        // ::base::samples::frame::Frame *frame_right_ptr_sync = &rightFrameSync;
-        // frame_left_ptr_sync->received_time = base::Time::now();
-        // frame_right_ptr_sync->received_time = frame_left_ptr_sync->received_time;
-
-        // Write the images to the synced output ports
-        // frame_left.reset(frame_left_ptr_sync);
-        // _left_frame_sync.write(frame_left);
-        // frame_right.reset(frame_right_ptr_sync);
-        // _right_frame_sync.write(frame_right);
+        ::base::samples::frame::Frame *frame_left_ptr_sync = &leftFrameSync;
+        ::base::samples::frame::Frame *frame_right_ptr_sync = &rightFrameSync;
+        frame_left_ptr_sync->received_time = base::Time::now();
+        frame_right_ptr_sync->received_time = frame_left_ptr_sync->received_time;
 
         // get a cv::Mat wrapper around the frames
         cv::Mat rightCvFrame = frame_helper::FrameHelper::convertToCvMat(rightFrameTarget);
@@ -137,6 +131,13 @@ void Task::updateHook()
         // perform dense stereo processing if the output ports are connected
         if(_distance_frame.connected() || _disparity_frame.connected() || _point_cloud.connected())
             denseStereo( leftCvFrame, rightCvFrame );
+
+        // Write the images to the synced output ports
+        frame_left.reset(frame_left_ptr_sync);
+        _left_frame_sync.write(frame_left);
+        frame_right.reset(frame_right_ptr_sync);
+        _right_frame_sync.write(frame_right);
+
     }
 }
 
