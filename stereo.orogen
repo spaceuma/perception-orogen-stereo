@@ -57,9 +57,9 @@ task_context "Task" do
 	doc "provides an array of 3d points with associated feature descriptors."
 
    # Synchronous output
-   output_port('left_frame_sync', ro_ptr('base::samples::frame::Frame')).
+   output_port('left_frame_sync', '/base/samples/frame/Frame').
         doc 'Synchronized Left camera frame of PanCam.'
-   output_port('right_frame_sync', ro_ptr('base::samples::frame::Frame')).
+   output_port('right_frame_sync', '/base/samples/frame/Frame').
         doc 'Synchronized Right camera frame of PanCam.'
    property("output_format_sync", "/base/samples/frame/frame_mode_t", :MODE_RGB).
         doc "The camera_format is converted into this format before it is written to the output port "
