@@ -16,7 +16,6 @@ using_library "pcl_visualization-1.7"
 import_types_from "base"
 
 import_types_from "stereo/dense_stereo_types.h"
-import_types_from "stereo/sparse_stereo_types.h"
 import_types_from "frame_helper/Calibration.h"
 
 task_context "Task" do
@@ -30,8 +29,6 @@ task_context "Task" do
 	doc "configuration values for libElas"
    property("gaussian_kernel", "/int", 0).
 	doc "gaussian kernel for dense stereo pre-processing."
-   property("sparse_config", "/stereo/FeatureConfiguration").
-	doc "configuration for sparse features."
    property("organized_output_point_cloud", "bool", false).
         doc "True for Organized output point cloud. False otherwise."
    property("colored_output_point_cloud", "bool", false).
@@ -46,15 +43,10 @@ task_context "Task" do
    property( "image_scaling_factor", "double", 1.0).
    	doc( "down- or upscale input images by this factor." )
 
-   output_port("sparse_debug", "/base/samples/frame/Frame").
-        doc "debug frame for the sparse processing library."
    output_port("disparity_frame", "/base/samples/frame/Frame").
 	doc "disparity image for the left input camera. Mainly for debug purposes."
    output_port("distance_frame", "/base/samples/DistanceImage").
 	doc "distance image for the left camera"
-
-   output_port("stereo_features", "/stereo/StereoFeatureArray").
-	doc "provides an array of 3d points with associated feature descriptors."
 
    # Synchronous output
    output_port('left_frame_sync', '/base/samples/frame/Frame').
