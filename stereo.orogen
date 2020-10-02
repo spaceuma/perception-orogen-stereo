@@ -9,8 +9,8 @@ name "stereo"
 # projects, these projects should be imported there as well.
 using_library "opencv", :typekit => false
 using_library "stereo"
-using_library "pcl_common-1.7"
-using_library "pcl_visualization-1.7"
+using_library "pcl_common-1.8"
+using_library "pcl_visualization-1.8"
 
 
 import_types_from "base"
