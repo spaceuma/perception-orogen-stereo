@@ -4,9 +4,6 @@
 #include <limits>
 
 #include <stddef.h>
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
-
 #include <stereo/densestereo.h>
 #include <stereo/dense_stereo_types.h>
 #include <base/Time.hpp>

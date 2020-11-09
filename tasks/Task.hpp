@@ -4,7 +4,6 @@
 #define DENSE_STEREO_TASK_TASK_HPP
 
 #include <stddef.h>
-#include <opencv/cv.h>
 #include <base/samples/Frame.hpp>
 #include <frame_helper/CalibrationCv.h>
 #include <frame_helper/FrameHelper.h>
