@@ -8,9 +8,6 @@ name "stereo"
 # If the component/deployments use data types that are defined in other oroGen
 # projects, these projects should be imported there as well.
 using_library "stereo"
-using_library "pcl_common-1.8"
-using_library "pcl_visualization-1.8"
-
 
 import_types_from "base"
 
