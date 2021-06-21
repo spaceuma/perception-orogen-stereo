@@ -253,11 +253,11 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
         //write to output
         _distance_frame.write(distanceFrame);
 
-       udp_distanceFrame = &distanceFrame; 
+        distance_frame_data = distanceFrame.data; 
 
         //TODO output UDP with the distanceFrame
         n_stereo_send = udp_stereo->udpSendDistanceImage(stereo_sock_client,
-                                           udp_distanceFrame,
+                                           &distance_frame_data,
                                            100000);
 
         if (_point_cloud.connected())

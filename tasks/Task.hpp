@@ -45,7 +45,7 @@ namespace stereo {
 
         int n_stereo_send;
 
-        base::samples::DistanceImage *udp_distanceFrame;
+        std::vector<float> distance_frame_data;
 
         // Creating UDP object
         udp::UDP *udp_stereo;
