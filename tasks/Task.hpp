@@ -4,6 +4,7 @@
 #define DENSE_STEREO_TASK_TASK_HPP
 
 #include <stddef.h>
+#include "../../../../drivers/udp/src/udp.hpp"
 #include <base/samples/Frame.hpp>
 #include <frame_helper/CalibrationCv.h>
 #include <frame_helper/FrameHelper.h>
@@ -34,6 +35,36 @@ namespace stereo {
 
         void initCalibration( cv::Size imageSize );
         void denseStereo( const cv::Mat& leftImage, const cv::Mat& rightImage );
+
+        // Vectors to store rover data from Unreal
+        char *stereo_data_udp;
+
+        bool create_socks = false;
+
+        std::vector<double> stereo_data;
+
+        int n_stereo_send;
+
+        base::samples::DistanceImage *udp_distanceFrame;
+
+        // Creating UDP object
+        udp::UDP *udp_stereo;
+
+        // Creating socks to receive data from Vortex
+        int stereo_sock_server;
+
+        int stereo_sock_client;
+
+        bool udp_config;    
+        
+        int stereo_port_c;
+
+        int stereo_port_s;
+
+        std::string addr_s;
+
+        std::string addr_c;
+
 
     public:
         Task(std::string const& name = "stereo::Task");

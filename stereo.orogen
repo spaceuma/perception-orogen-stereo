@@ -9,6 +9,7 @@ name "stereo"
 # projects, these projects should be imported there as well.
 using_library "stereo"
 
+using_library "udp"
 import_types_from "base"
 
 import_types_from "stereo/dense_stereo_types.h"
@@ -43,6 +44,12 @@ task_context "Task" do
 	doc "disparity image for the left input camera. Mainly for debug purposes."
    output_port("distance_frame", "/base/samples/DistanceImage").
 	doc "distance image for the left camera"
+
+	property("stereo_port_c", "int",0)
+
+    property("addr_c", "/std/string","none")
+
+    property("udp_config", "bool",false)
 
    # Synchronous output
    output_port('left_frame_sync', '/base/samples/frame/Frame').

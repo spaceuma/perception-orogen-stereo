@@ -56,6 +56,32 @@ bool Task::configureHook()
 
     if (! TaskBase::configureHook())
         return false;
+
+    udp_config = _udp_config.get();        
+
+    if (udp_config)
+    {
+        // Ports to receive data from Vortex (server and client)
+        stereo_port_c = _stereo_port_c.get();
+
+        // Load addresses
+        addr_c = _addr_c.get();
+        
+        if (!create_socks)
+        {
+            udp_stereo = new udp::UDP();
+
+            // Creating socks to receive data from Vortex (server and client)
+            stereo_sock_client = udp_stereo->createSocket();
+
+            // Bind & connect sockets with addresses to receive data from Vortex
+            udp_stereo->connectSocket(stereo_sock_client, addr_c, stereo_port_c);
+
+            create_socks = true;
+
+        }
+    }
+
     return true;
 }
 
@@ -226,6 +252,13 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
     {
         //write to output
         _distance_frame.write(distanceFrame);
+
+       udp_distanceFrame = &distanceFrame; 
+
+        //TODO output UDP with the distanceFrame
+        n_stereo_send = udp_stereo->udpSendDistanceImage(stereo_sock_client,
+                                           udp_distanceFrame,
+                                           100000);
 
         if (_point_cloud.connected())
         {
