@@ -77,6 +77,8 @@ bool Task::configureHook()
             // Bind & connect sockets with addresses to receive data from Vortex
             udp_stereo->connectSocket(stereo_sock_client, addr_c, stereo_port_c);
 
+            std::cout<<"Stereo connected"<<std::endl;
+
             create_socks = true;
 
         }
@@ -255,11 +257,15 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
 
         distance_frame_data = distanceFrame.data; 
 
-        //TODO output UDP with the distanceFrame
-        n_stereo_send = udp_stereo->udpSendDistanceImage(stereo_sock_client,
+        if (udp_config)
+        {
+            //TODO output UDP with the distanceFrame
+            n_stereo_send = udp_stereo->udpSendDistanceImage(stereo_sock_client,
                                            &distance_frame_data,
                                            100000);
 
+        std::cout<<"Stereo sent"<<std::endl;
+        }
         if (_point_cloud.connected())
         {
             /** Convert to point cloud with color **/
