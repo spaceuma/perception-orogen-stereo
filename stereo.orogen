@@ -51,6 +51,10 @@ task_context "Task" do
 
     property("udp_config", "bool",false)
 
+    property("navcam", "bool",false)
+
+    property("loccam", "bool",false)
+
    # Synchronous output
    output_port('left_frame_sync', '/base/samples/frame/Frame').
         doc 'Synchronized Left camera frame of PanCam.'

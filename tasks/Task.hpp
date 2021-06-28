@@ -57,6 +57,10 @@ namespace stereo {
 
         bool udp_config;    
         
+        bool loccam;
+        
+        bool navcam;    
+        
         int stereo_port_c;
 
         int stereo_port_s;

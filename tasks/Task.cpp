@@ -59,6 +59,10 @@ bool Task::configureHook()
 
     udp_config = _udp_config.get();        
 
+    loccam = _loccam.get();        
+
+    navcam = _navcam.get();        
+
     if (udp_config)
     {
         // Ports to receive data from Vortex (server and client)
@@ -76,8 +80,6 @@ bool Task::configureHook()
 
             // Bind & connect sockets with addresses to receive data from Vortex
             udp_stereo->connectSocket(stereo_sock_client, addr_c, stereo_port_c);
-
-            std::cout<<"Stereo connected"<<std::endl;
 
             create_socks = true;
 
@@ -259,12 +261,16 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
 
         if (udp_config)
         {
-            //TODO output UDP with the distanceFrame
-            n_stereo_send = udp_stereo->udpSendDistanceImage(stereo_sock_client,
-                                           &distance_frame_data,
-                                           100000);
+            if (navcam)
 
-        std::cout<<"Stereo sent"<<std::endl;
+                udp_stereo->saveVector_float(&distance_frame_data, "/var/www/exoter.com/public_html/distance_frame_navcam");
+
+            if (loccam)
+
+                udp_stereo->saveVector_float(&distance_frame_data, "/var/www/exoter.com/public_html/distance_frame_loccam");
+
+            //TODO output UDP with the distanceFrame
+
         }
         if (_point_cloud.connected())
         {
