@@ -263,11 +263,11 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
         {
             if (navcam)
 
-                udp_stereo->saveVector_float(&distance_frame_data, "/var/www/exoter.com/public_html/distance_frame_navcam");
+                udp_stereo->saveVector_float(&distance_frame_data, "/var/www/exoter.com/public_html/distance_frame_navcam.txt");
 
             if (loccam)
 
-                udp_stereo->saveVector_float(&distance_frame_data, "/var/www/exoter.com/public_html/distance_frame_loccam");
+                udp_stereo->saveVector_float(&distance_frame_data, "/var/www/exoter.com/public_html/distance_frame_loccam.txt");
 
             //TODO output UDP with the distanceFrame
 
