@@ -258,20 +258,15 @@ void Task::denseStereo( const cv::Mat& leftCvFrame, const cv::Mat& rightCvFrame 
         _distance_frame.write(distanceFrame);
 
         distance_frame_data = distanceFrame.data; 
+        
+        if (navcam)
 
-        if (udp_config)
-        {
-            if (navcam)
+            udp_stereo->saveVector_float(&distance_frame_data, "/var/www/exoter.com/public_html/distance_frame_navcam.txt");
 
-                udp_stereo->saveVector_float(&distance_frame_data, "/var/www/exoter.com/public_html/distance_frame_navcam.txt");
+        if (loccam)
 
-            if (loccam)
+            udp_stereo->saveVector_float(&distance_frame_data, "/var/www/exoter.com/public_html/distance_frame_loccam.txt");
 
-                udp_stereo->saveVector_float(&distance_frame_data, "/var/www/exoter.com/public_html/distance_frame_loccam.txt");
-
-            //TODO output UDP with the distanceFrame
-
-        }
         if (_point_cloud.connected())
         {
             /** Convert to point cloud with color **/
